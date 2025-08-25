@@ -1,5 +1,6 @@
 
 
+
 namespace LinuxApi.Models
 {
     public class Distro
@@ -12,6 +13,7 @@ namespace LinuxApi.Models
 
         //explicitando forenkeyid
         public Guid CategoriaId { get; set; }
+
         public Categoria? Categoria { get; set; }
     }
 }

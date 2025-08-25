@@ -1,5 +1,4 @@
-
-
+using Microsoft.EntityFrameworkCore;
 using LinuxApi.Context;
 using LinuxApi.Models;
 using LinuxApi.Repositories.Interfaces;
@@ -15,10 +14,18 @@ namespace LinuxApi.Repositories
         }
 
 
+
+
         public IEnumerable<Distro> GetDistroPorCategoria(Guid id)
         {
-            return GetAll().Where(c => c.CategoriaId == id);
+            return _context.Distros
+                .Include(d => d.Categoria) // carrega também a categoria
+                .Where(d => d.CategoriaId == id)
+                .ToList();
         }
-        
+
+
+
+
     }
 }

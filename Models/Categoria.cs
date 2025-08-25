@@ -1,5 +1,7 @@
 
 
+using System.Text.Json.Serialization;
+
 namespace LinuxApi.Models
 {
     public class Categoria
@@ -8,6 +10,7 @@ namespace LinuxApi.Models
         public string? Nome { get; set; }
 
         //categoria tem muitas distros
+        [JsonIgnore] 
         public ICollection<Distro>? Distros { get; set; }
     }
 }
