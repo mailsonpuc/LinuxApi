@@ -1,6 +1,7 @@
 using LinuxApi.DTOS;
 using LinuxApi.DTOS.Mappings;
 using LinuxApi.Models;
+using LinuxApi.Pagination;
 using LinuxApi.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -41,6 +42,18 @@ namespace LinuxApi.Controllers
 
             return Ok(distro.ToDistroDTO());
         }
+
+
+        [HttpGet("pagination")]
+        //[FromQuery] pegar da string passada
+        public ActionResult<IEnumerable<DistroDTO>> Pagination([FromQuery] DistrosParameters distrosParameters)
+        {
+            var distros = _uof.DistroRepository.GetDistros(distrosParameters);
+            var distrosDto = distros.ToDistroDTOList();
+            return Ok(distrosDto);
+        }
+
+        
 
         // POST
         [HttpPost]

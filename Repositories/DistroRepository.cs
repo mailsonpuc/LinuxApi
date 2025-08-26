@@ -2,19 +2,15 @@ using Microsoft.EntityFrameworkCore;
 using LinuxApi.Context;
 using LinuxApi.Models;
 using LinuxApi.Repositories.Interfaces;
+using LinuxApi.Pagination;
 
 namespace LinuxApi.Repositories
 {
     public class DistroRepository : Repository<Distro>, IDistroRepository
     {
-        //se precisa de contexto busca na class base, repository
         public DistroRepository(AppDbContext context) : base(context)
         {
-
         }
-
-
-
 
         public IEnumerable<Distro> GetDistroPorCategoria(Guid id)
         {
@@ -24,8 +20,14 @@ namespace LinuxApi.Repositories
                 .ToList();
         }
 
-
-
-
+        public IEnumerable<Distro> GetDistros(DistrosParameters distrosParameters)
+        {
+            return _context.Distros
+                .Include(d => d.Categoria) //  trazer junto a categoria
+                .OrderBy(p => p.Nome)
+                .Skip((distrosParameters.PageNumber - 1) * distrosParameters.PageSize) 
+                .Take(distrosParameters.PageSize)
+                .ToList();
+        }
     }
 }
