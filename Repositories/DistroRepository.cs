@@ -20,14 +20,20 @@ namespace LinuxApi.Repositories
                 .ToList();
         }
 
-        public IEnumerable<Distro> GetDistros(DistrosParameters distrosParameters)
+        // public IEnumerable<Distro> GetDistros(DistrosParameters distrosParameters)
+        // {
+        //     return _context.Distros
+        //         .Include(d => d.Categoria) //  trazer junto a categoria
+        //         .OrderBy(p => p.Nome)
+        //         .Skip((distrosParameters.PageNumber - 1) * distrosParameters.PageSize) 
+        //         .Take(distrosParameters.PageSize)
+        //         .ToList();
+        // }
+        public PagedList<Distro> GetDistros(DistrosParameters distrosParameters)
         {
-            return _context.Distros
-                .Include(d => d.Categoria) //  trazer junto a categoria
-                .OrderBy(p => p.Nome)
-                .Skip((distrosParameters.PageNumber - 1) * distrosParameters.PageSize) 
-                .Take(distrosParameters.PageSize)
-                .ToList();
+            var distros = GetAll().OrderBy(d => d.DistroId).AsQueryable();
+            var distrosOrdenados = PagedList<Distro>.ToPagedList(distros, distrosParameters.PageNumber, distrosParameters.PageSize);
+            return distrosOrdenados;
         }
     }
 }

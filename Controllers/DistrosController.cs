@@ -4,6 +4,7 @@ using LinuxApi.Models;
 using LinuxApi.Pagination;
 using LinuxApi.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace LinuxApi.Controllers
 {
@@ -49,6 +50,18 @@ namespace LinuxApi.Controllers
         public ActionResult<IEnumerable<DistroDTO>> Pagination([FromQuery] DistrosParameters distrosParameters)
         {
             var distros = _uof.DistroRepository.GetDistros(distrosParameters);
+
+            //variavel anonima
+            var metadata = new
+            {
+                distros.TotalCount,
+                distros.PageSize,
+                distros.CurrentPage,
+                distros.HasNext,
+                distros.HasPrevious
+            };
+
+            Response.Headers.Append("X-Pagination-info", JsonConvert.SerializeObject(metadata));
             var distrosDto = distros.ToDistroDTOList();
             return Ok(distrosDto);
         }
