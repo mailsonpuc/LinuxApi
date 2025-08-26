@@ -13,31 +13,29 @@ namespace LinuxApi.Controllers
     public class DistrosController : ControllerBase
     {
         private readonly IDistroRepository _DistroRepository;
-        private readonly IRepository<Distro> _repository;
+        private readonly IUnitOfWork _uof;
         private readonly ILogger<DistrosController> _logger;
 
-        public DistrosController(IDistroRepository distroRepository, IRepository<Distro> repository, ILogger<DistrosController> logger)
+        public DistrosController(IDistroRepository distroRepository, IUnitOfWork uof, ILogger<DistrosController> logger)
         {
             _DistroRepository = distroRepository;
-            _repository = repository;
+            _uof = uof;
             _logger = logger;
         }
-
-
-
-
 
         [HttpGet]
         public ActionResult<IEnumerable<Distro>> Get()
         {
-            var distros = _repository.GetAll();
+            var distros = _uof.DistroRepository.GetAll();
             return Ok(distros);
         }
+
+
 
         [HttpGet("{id:guid}", Name = "ObterDistro")]
         public ActionResult<Distro> Get(Guid id)
         {
-            var distro = _repository.Get(c => c.DistroId == id);
+            var distro = _uof.DistroRepository.Get(c => c.DistroId == id);
             if (distro is null)
             {
                 _logger.LogInformation($"Distro com id={id} não encontrada.");
@@ -56,7 +54,8 @@ namespace LinuxApi.Controllers
                 return BadRequest("Dados inválidos.");
             }
 
-            var distroCriada = _repository.Create(distro);
+            var distroCriada = _uof.DistroRepository.Create(distro);
+            _uof.Commit();
             return CreatedAtRoute("ObterDistro", new { id = distroCriada.DistroId }, distroCriada);
         }
 
@@ -70,7 +69,8 @@ namespace LinuxApi.Controllers
                 return BadRequest("Dados inválidos.");
             }
 
-            _repository.Update(distro);
+            _uof.DistroRepository.Update(distro);
+            _uof.Commit();
             return Ok(distro);
         }
 
@@ -79,14 +79,15 @@ namespace LinuxApi.Controllers
         [HttpDelete("{id:guid}")]
         public ActionResult<Distro> Delete(Guid id)
         {
-            var distro = _repository.Get(c => c.DistroId == id);
+            var distro = _uof.DistroRepository.Get(c => c.DistroId == id);
             if (distro is null)
             {
                 _logger.LogInformation($"DIstro com id={id} não encontrada.");
                 return NotFound($"Distro com id={id} não encontrada.");
             }
 
-            var DistroExcluida = _repository.Delete(distro);
+            var DistroExcluida = _uof.DistroRepository.Delete(distro);
+            _uof.Commit();
             return Ok(DistroExcluida);
         }
 

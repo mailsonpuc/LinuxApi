@@ -3,6 +3,7 @@
 using System.Linq.Expressions;
 using LinuxApi.Context;
 using LinuxApi.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace LinuxApi.Repositories
 {
@@ -19,7 +20,7 @@ namespace LinuxApi.Repositories
 
         public IEnumerable<T> GetAll()
         {
-            return _context.Set<T>().ToList();
+            return _context.Set<T>().AsNoTracking().ToList();
         }
 
         public T? Get(Expression<Func<T, bool>> predicate)
@@ -32,7 +33,7 @@ namespace LinuxApi.Repositories
         public T Create(T entity)
         {
             _context.Set<T>().Add(entity);
-            _context.SaveChanges();
+           //_context.SaveChanges();
             return entity;
         }
 
@@ -41,7 +42,7 @@ namespace LinuxApi.Repositories
         {
             _context.Set<T>().Update(entity);
             //_context.Entry(entity).State = EntityState.Modified
-            _context.SaveChanges();
+           //_context.SaveChanges();
             return entity;
         }
 
@@ -49,7 +50,7 @@ namespace LinuxApi.Repositories
         public T Delete(T entity)
         {
             _context.Set<T>().Remove(entity);
-            _context.SaveChanges();
+           //_context.SaveChanges();
             return entity;
         }
 

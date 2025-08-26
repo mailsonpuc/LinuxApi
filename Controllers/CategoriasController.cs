@@ -11,26 +11,28 @@ namespace LinuxApi.Controllers
     [Route("api/[controller]")]
     public class CategoriasController : ControllerBase
     {
-        private readonly IRepository<Categoria> _repository;
+        //private readonly IRepository<Categoria> _repository;
+        private readonly IUnitOfWork _uof;
         private readonly ILogger<CategoriasController> _logger;
 
-        public CategoriasController(IRepository<Categoria> repository, ILogger<CategoriasController> logger)
+        public CategoriasController(IUnitOfWork uof, ILogger<CategoriasController> logger)
         {
-            _repository = repository;
+            _uof = uof;
             _logger = logger;
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Categoria>> Get()
+        public ActionResult<IEnumerable<Categoria>> GetAll()
         {
-            var categorias = _repository.GetAll();
+            var categorias = _uof.CategoriaRepository.GetAll();
             return Ok(categorias);
         }
+
 
         [HttpGet("{id:guid}", Name = "ObterCategoria")]
         public ActionResult<Categoria> Get(Guid id)
         {
-            var categoria = _repository.Get(c => c.CategoriaId == id);
+            var categoria = _uof.CategoriaRepository.Get(c => c.CategoriaId == id);
             if (categoria is null)
             {
                 _logger.LogInformation($"Categoria com id={id} não encontrada.");
@@ -38,6 +40,7 @@ namespace LinuxApi.Controllers
             }
             return Ok(categoria);
         }
+
 
         [HttpPost]
         public ActionResult<Categoria> Post([FromBody] Categoria categoria)
@@ -48,7 +51,8 @@ namespace LinuxApi.Controllers
                 return BadRequest("Dados inválidos.");
             }
 
-            var categoriaCriada = _repository.Create(categoria);
+            var categoriaCriada = _uof.CategoriaRepository.Create(categoria);
+            _uof.Commit();
             return CreatedAtRoute("ObterCategoria", new { id = categoriaCriada.CategoriaId }, categoriaCriada);
         }
 
@@ -62,7 +66,8 @@ namespace LinuxApi.Controllers
                 return BadRequest("Dados inválidos.");
             }
 
-            _repository.Update(categoria);
+            _uof.CategoriaRepository.Update(categoria);
+            _uof.Commit();
             return Ok(categoria);
         }
 
@@ -71,14 +76,15 @@ namespace LinuxApi.Controllers
         [HttpDelete("{id:guid}")]
         public ActionResult<Categoria> Delete(Guid id)
         {
-            var categoria = _repository.Get(c => c.CategoriaId == id);
+            var categoria = _uof.CategoriaRepository.Get(c => c.CategoriaId == id);
             if (categoria is null)
             {
                 _logger.LogInformation($"Categoria com id={id} não encontrada.");
                 return NotFound($"Categoria com id={id} não encontrada.");
             }
 
-            var categoriaExcluida = _repository.Delete(categoria);
+            var categoriaExcluida = _uof.CategoriaRepository.Delete(categoria);
+            _uof.Commit();
             return Ok(categoriaExcluida);
         }
 
