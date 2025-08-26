@@ -1,7 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using LinuxApi.DTOS;
+using LinuxApi.DTOS.Mappings;
 using LinuxApi.Models;
 using LinuxApi.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -12,28 +10,27 @@ namespace LinuxApi.Controllers
     [Route("api/[controller]")]
     public class DistrosController : ControllerBase
     {
-        private readonly IDistroRepository _DistroRepository;
         private readonly IUnitOfWork _uof;
         private readonly ILogger<DistrosController> _logger;
 
-        public DistrosController(IDistroRepository distroRepository, IUnitOfWork uof, ILogger<DistrosController> logger)
+        public DistrosController(IUnitOfWork uof, ILogger<DistrosController> logger)
         {
-            _DistroRepository = distroRepository;
             _uof = uof;
             _logger = logger;
         }
 
+        // GET ALL
         [HttpGet]
-        public ActionResult<IEnumerable<Distro>> Get()
+        public ActionResult<IEnumerable<DistroDTO>> Get()
         {
             var distros = _uof.DistroRepository.GetAll();
-            return Ok(distros);
+            var distrosDto = distros.ToDistroDTOList();
+            return Ok(distrosDto);
         }
 
-
-
+        // GET BY ID
         [HttpGet("{id:guid}", Name = "ObterDistro")]
-        public ActionResult<Distro> Get(Guid id)
+        public ActionResult<DistroDTO> Get(Guid id)
         {
             var distro = _uof.DistroRepository.Get(c => c.DistroId == id);
             if (distro is null)
@@ -41,56 +38,61 @@ namespace LinuxApi.Controllers
                 _logger.LogInformation($"Distro com id={id} não encontrada.");
                 return NotFound($"Distro com id={id} não encontrada.");
             }
-            return Ok(distro);
+
+            return Ok(distro.ToDistroDTO());
         }
 
-
+        // POST
         [HttpPost]
-        public ActionResult<Distro> Post([FromBody] Distro distro)
+        public ActionResult<DistroDTO> Post([FromBody] DistroDTO distroDto)
         {
-            if (distro is null)
+            if (distroDto is null)
             {
                 _logger.LogInformation("Dados inválidos.");
                 return BadRequest("Dados inválidos.");
             }
 
+            var distro = distroDto.ToDistro();
             var distroCriada = _uof.DistroRepository.Create(distro);
             _uof.Commit();
-            return CreatedAtRoute("ObterDistro", new { id = distroCriada.DistroId }, distroCriada);
+
+            var distroCriadaDto = distroCriada.ToDistroDTO();
+
+            return CreatedAtRoute("ObterDistro", new { id = distroCriadaDto.DistroId }, distroCriadaDto);
         }
 
-
+        // PUT
         [HttpPut("{id:guid}")]
-        public ActionResult<Distro> Put(Guid id, Distro distro)
+        public ActionResult<DistroDTO> Put(Guid id, DistroDTO distroDto)
         {
-            if (id != distro.DistroId)
+            if (id != distroDto.DistroId)
             {
                 _logger.LogInformation("Dados inválidos.");
                 return BadRequest("Dados inválidos.");
             }
 
+            var distro = distroDto.ToDistro();
             _uof.DistroRepository.Update(distro);
             _uof.Commit();
-            return Ok(distro);
+
+            return Ok(distro.ToDistroDTO());
         }
 
-
-
+        // DELETE
         [HttpDelete("{id:guid}")]
-        public ActionResult<Distro> Delete(Guid id)
+        public ActionResult<DistroDTO> Delete(Guid id)
         {
             var distro = _uof.DistroRepository.Get(c => c.DistroId == id);
             if (distro is null)
             {
-                _logger.LogInformation($"DIstro com id={id} não encontrada.");
+                _logger.LogInformation($"Distro com id={id} não encontrada.");
                 return NotFound($"Distro com id={id} não encontrada.");
             }
 
-            var DistroExcluida = _uof.DistroRepository.Delete(distro);
+            var distroExcluida = _uof.DistroRepository.Delete(distro);
             _uof.Commit();
-            return Ok(DistroExcluida);
+
+            return Ok(distroExcluida.ToDistroDTO());
         }
-
-
     }
 }

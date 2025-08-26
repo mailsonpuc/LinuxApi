@@ -1,9 +1,8 @@
-using System;
-using System.Collections.Generic;
+using LinuxApi.DTOS;
+using LinuxApi.DTOS.Mappings;
 using LinuxApi.Models;
 using LinuxApi.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace LinuxApi.Controllers
 {
@@ -11,7 +10,6 @@ namespace LinuxApi.Controllers
     [Route("api/[controller]")]
     public class CategoriasController : ControllerBase
     {
-        //private readonly IRepository<Categoria> _repository;
         private readonly IUnitOfWork _uof;
         private readonly ILogger<CategoriasController> _logger;
 
@@ -21,16 +19,18 @@ namespace LinuxApi.Controllers
             _logger = logger;
         }
 
+        // GET ALL
         [HttpGet]
-        public ActionResult<IEnumerable<Categoria>> GetAll()
+        public ActionResult<IEnumerable<CategoriaDTO>> GetAll()
         {
             var categorias = _uof.CategoriaRepository.GetAll();
-            return Ok(categorias);
+            var categoriasDto = categorias.ToCategoriaDTOList();
+            return Ok(categoriasDto);
         }
 
-
+        // GET BY ID
         [HttpGet("{id:guid}", Name = "ObterCategoria")]
-        public ActionResult<Categoria> Get(Guid id)
+        public ActionResult<CategoriaDTO> Get(Guid id)
         {
             var categoria = _uof.CategoriaRepository.Get(c => c.CategoriaId == id);
             if (categoria is null)
@@ -38,43 +38,49 @@ namespace LinuxApi.Controllers
                 _logger.LogInformation($"Categoria com id={id} não encontrada.");
                 return NotFound($"Categoria com id={id} não encontrada.");
             }
-            return Ok(categoria);
+
+            return Ok(categoria.ToCategoriaDTO());
         }
 
-
+        // POST
         [HttpPost]
-        public ActionResult<Categoria> Post([FromBody] Categoria categoria)
+        public ActionResult<CategoriaDTO> Post([FromBody] CategoriaDTO categoriaDto)
         {
-            if (categoria is null)
+            if (categoriaDto is null)
             {
                 _logger.LogInformation("Dados inválidos.");
                 return BadRequest("Dados inválidos.");
             }
 
+            var categoria = categoriaDto.ToCategoria();
             var categoriaCriada = _uof.CategoriaRepository.Create(categoria);
             _uof.Commit();
-            return CreatedAtRoute("ObterCategoria", new { id = categoriaCriada.CategoriaId }, categoriaCriada);
+
+            var categoriaCriadaDto = categoriaCriada.ToCategoriaDTO();
+
+            return CreatedAtRoute("ObterCategoria", new { id = categoriaCriadaDto.CategoriaId }, categoriaCriadaDto);
         }
 
-
+        // PUT
         [HttpPut("{id:guid}")]
-        public ActionResult<Categoria> Put(Guid id, Categoria categoria)
+        public ActionResult<CategoriaDTO> Put(Guid id, CategoriaDTO categoriaDto)
         {
-            if (id != categoria.CategoriaId)
+            if (id != categoriaDto.CategoriaId)
             {
                 _logger.LogInformation("Dados inválidos.");
                 return BadRequest("Dados inválidos.");
             }
 
+            var categoria = categoriaDto.ToCategoria();
             _uof.CategoriaRepository.Update(categoria);
             _uof.Commit();
-            return Ok(categoria);
+
+            return Ok(categoria.ToCategoriaDTO());
         }
 
-
-
+        // DELETE
         [HttpDelete("{id:guid}")]
-        public ActionResult<Categoria> Delete(Guid id)
+        public ActionResult<CategoriaDTO> Delete(Guid id)
         {
             var categoria = _uof.CategoriaRepository.Get(c => c.CategoriaId == id);
             if (categoria is null)
@@ -85,8 +91,8 @@ namespace LinuxApi.Controllers
 
             var categoriaExcluida = _uof.CategoriaRepository.Delete(categoria);
             _uof.Commit();
-            return Ok(categoriaExcluida);
-        }
 
+            return Ok(categoriaExcluida.ToCategoriaDTO());
+        }
     }
 }
