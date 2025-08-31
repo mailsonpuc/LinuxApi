@@ -1,16 +1,16 @@
-
-
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace LinuxApi.Repositories.Interfaces
 {
     public interface IRepository<T>
     {
-        IEnumerable<T> GetAll();
-        T? Get(Expression<Func<T, bool>> predicate);
-        T Create(T entity);
-        T Update(T entity);
-        T Delete(T entity);
+        Task<IEnumerable<T>> GetAllAsync();
+        Task<T?> GetAsync(Expression<Func<T, bool>> predicate);
+        Task<T> CreateAsync(T entity);
+        Task<T> UpdateAsync(T entity);
+        Task<T> DeleteAsync(T entity);
     }
 }

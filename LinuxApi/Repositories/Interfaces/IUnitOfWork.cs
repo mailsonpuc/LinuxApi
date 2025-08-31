@@ -6,6 +6,6 @@ namespace LinuxApi.Repositories.Interfaces
     {
         IDistroRepository DistroRepository { get; }
         ICategoriaRepository CategoriaRepository { get; }
-        void Commit();
+        Task CommitAsync();
     }
 }

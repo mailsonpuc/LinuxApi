@@ -23,18 +23,18 @@ namespace LinuxApi.Controllers
 
         // GET ALL
         [HttpGet]
-        public ActionResult<IEnumerable<DistroDTO>> Get()
+        public async Task<ActionResult<IEnumerable<DistroDTO>>> Get()
         {
-            var distros = _uof.DistroRepository.GetAll();
+            var distros = await _uof.DistroRepository.GetAllAsync();
             var distrosDto = distros.ToDistroDTOList();
             return Ok(distrosDto);
         }
 
         // GET BY ID
         [HttpGet("{id:guid}", Name = "ObterDistro")]
-        public ActionResult<DistroDTO> Get(Guid id)
+        public async Task<ActionResult<DistroDTO>> Get(Guid id)
         {
-            var distro = _uof.DistroRepository.Get(c => c.DistroId == id);
+            var distro = await _uof.DistroRepository.GetAsync(c => c.DistroId == id);
             if (distro is null)
             {
                 _logger.LogInformation($"Distro com id={id} não encontrada.");
@@ -44,21 +44,18 @@ namespace LinuxApi.Controllers
             return Ok(distro.ToDistroDTO());
         }
 
-
         //pagination
         [HttpGet("pagination")]
-        //[FromQuery] pegar da string passada
-        public ActionResult<IEnumerable<DistroDTO>> Pagination([FromQuery]
-                     DistrosParameters distrosParameters)
+        public async Task<ActionResult<IEnumerable<DistroDTO>>> Pagination([FromQuery] DistrosParameters distrosParameters)
         {
-            var distros = _uof.DistroRepository.GetDistros(distrosParameters);
+            var distros = await _uof.DistroRepository.GetDistrosAsync(distrosParameters);
 
-            //variavel anonima
-            return ObterCategorias(distros);
+            return await ObterCategorias(distros);
         }
 
         //metodo extraido
-        private ActionResult<IEnumerable<DistroDTO>> ObterCategorias(PagedList<Distro> distros)
+        #pragma warning disable CS1998
+        private async Task<ActionResult<IEnumerable<DistroDTO>>> ObterCategorias(PagedList<Distro> distros)
         {
             var metadata = new
             {
@@ -68,31 +65,25 @@ namespace LinuxApi.Controllers
                 distros.TotalPages,
                 distros.HasNext,
                 distros.HasPrevieus
-
             };
-
 
             Response.Headers.Append("X-Pagination-info", JsonConvert.SerializeObject(metadata));
             var distrosDto = distros.ToDistroDTOList();
             return Ok(distrosDto);
         }
-
+        #pragma warning restore CS1998
 
         //filtro nome
         [HttpGet("filter/nome/pagination")]
-        public ActionResult<IEnumerable<DistroDTO>> GetDistroFiltradas([FromQuery]
-                     DistroFiltroNome distroFiltroNome)
+        public async Task<ActionResult<IEnumerable<DistroDTO>>> GetDistroFiltradas([FromQuery] DistroFiltroNome distroFiltroNome)
         {
-            var distrosFiltradas = _uof.DistroRepository.GetDistrosFiltroNome(distroFiltroNome);
-            //chama o metodo extraido
-            return ObterCategorias(distrosFiltradas);
+            var distrosFiltradas = await _uof.DistroRepository.GetDistrosFiltroNomeAsync(distroFiltroNome);
+            return await ObterCategorias(distrosFiltradas);
         }
-
-
 
         // POST
         [HttpPost]
-        public ActionResult<DistroDTO> Post([FromBody] DistroDTO distroDto)
+        public async Task<ActionResult<DistroDTO>> Post([FromBody] DistroDTO distroDto)
         {
             if (distroDto is null)
             {
@@ -101,8 +92,8 @@ namespace LinuxApi.Controllers
             }
 
             var distro = distroDto.ToDistro();
-            var distroCriada = _uof.DistroRepository.Create(distro);
-            _uof.Commit();
+            var distroCriada = await _uof.DistroRepository.CreateAsync(distro); // CORRIGIDO: Adicionado 'await' e mudado o método
+            await _uof.CommitAsync();
 
             var distroCriadaDto = distroCriada.ToDistroDTO();
 
@@ -111,7 +102,7 @@ namespace LinuxApi.Controllers
 
         // PUT
         [HttpPut("{id:guid}")]
-        public ActionResult<DistroDTO> Put(Guid id, DistroDTO distroDto)
+        public async Task<ActionResult<DistroDTO>> Put(Guid id, DistroDTO distroDto)
         {
             if (id != distroDto.DistroId)
             {
@@ -120,25 +111,25 @@ namespace LinuxApi.Controllers
             }
 
             var distro = distroDto.ToDistro();
-            _uof.DistroRepository.Update(distro);
-            _uof.Commit();
+            var distroAtualizada = await _uof.DistroRepository.UpdateAsync(distro); // CORRIGIDO: Adicionado 'await' e mudado o método
+            await _uof.CommitAsync();
 
-            return Ok(distro.ToDistroDTO());
+            return Ok(distroAtualizada.ToDistroDTO());
         }
 
         // DELETE
         [HttpDelete("{id:guid}")]
-        public ActionResult<DistroDTO> Delete(Guid id)
+        public async Task<ActionResult<DistroDTO>> Delete(Guid id)
         {
-            var distro = _uof.DistroRepository.Get(c => c.DistroId == id);
+            var distro = await _uof.DistroRepository.GetAsync(c => c.DistroId == id);
             if (distro is null)
             {
                 _logger.LogInformation($"Distro com id={id} não encontrada.");
                 return NotFound($"Distro com id={id} não encontrada.");
             }
 
-            var distroExcluida = _uof.DistroRepository.Delete(distro);
-            _uof.Commit();
+            var distroExcluida = await _uof.DistroRepository.DeleteAsync(distro); // CORRIGIDO: Adicionado 'await' e mudado o método
+            await _uof.CommitAsync();
 
             return Ok(distroExcluida.ToDistroDTO());
         }

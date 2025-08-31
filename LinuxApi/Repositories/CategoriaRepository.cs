@@ -1,29 +1,31 @@
-
-
 using LinuxApi.Context;
 using LinuxApi.Models;
 using LinuxApi.Pagination;
 using LinuxApi.Repositories.Interfaces;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace LinuxApi.Repositories
 {
     public class CategoriaRepository : Repository<Categoria>, ICategoriaRepository
     {
-        //se precisa de contexto busca na class base, repository
         public CategoriaRepository(AppDbContext context) : base(context)
         {
-
         }
 
-        public PagedList<Categoria> GetCategorias(CategoriaParameters categoriaParameters)
+        public async Task<PagedList<Categoria>> GetCategoriasAsync(CategoriaParameters categoriaParameters)
         {
-            var categorias = GetAll().OrderBy(p => p.CategoriaId).AsQueryable();
-            var categoriasOrdenadas = PagedList<Categoria>.ToPagedList(categorias,
-                        categoriaParameters.PageNumber, categoriaParameters.PageSize);
-            return categoriasOrdenadas;
+            // Obtém todos os registros de Categoria
+            var categorias = await GetAllAsync();
+
+            // Ordena por CategoriaId
+            var categoriasOrdenadas = categorias.OrderBy(p => p.CategoriaId).AsQueryable();
+
+            // Retorna a paginação
+            return PagedList<Categoria>.ToPagedList(
+                categoriasOrdenadas,
+                categoriaParameters.PageNumber,
+                categoriaParameters.PageSize);
         }
-
-
-
     }
 }

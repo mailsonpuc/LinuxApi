@@ -3,6 +3,8 @@ using LinuxApi.Context;
 using LinuxApi.Models;
 using LinuxApi.Repositories.Interfaces;
 using LinuxApi.Pagination;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace LinuxApi.Repositories
 {
@@ -12,27 +14,40 @@ namespace LinuxApi.Repositories
         {
         }
 
-      
-
-        public PagedList<Distro> GetDistros(DistrosParameters distrosParams)
+        public async Task<PagedList<Distro>> GetDistrosAsync(DistrosParameters distrosParams)
         {
-            var distros = GetAll().OrderBy(p => p.DistroId).AsQueryable();
-            var distrosOrdenadas = PagedList<Distro>.ToPagedList(distros,
-                        distrosParams.PageNumber, distrosParams.PageSize);
-            return distrosOrdenadas;
+            // Obtem as distros de forma assíncrona
+            var distros = await GetAllAsync();
+
+            // Ordena
+            var distrosOrdenadas = distros.OrderBy(p => p.DistroId).AsQueryable();
+
+            // Paginacao
+            return PagedList<Distro>.ToPagedList(
+                distrosOrdenadas,
+                distrosParams.PageNumber,
+                distrosParams.PageSize);
         }
 
-        public PagedList<Distro> GetDistrosFiltroNome(DistroFiltroNome distrosParams)
+        public async Task<PagedList<Distro>> GetDistrosFiltroNomeAsync(DistroFiltroNome distrosParams)
         {
-            var distros = GetAll().AsQueryable();
+            // Obtem todas as distros de forma assíncrona
+            var distros = await GetAllAsync();
+
+            // Converte para IQueryable
+            var distrosQueryable = distros.AsQueryable();
+
+            // Filtra se necessário
             if (!string.IsNullOrEmpty(distrosParams.Nome))
             {
-                distros = distros.Where(c => c.Nome.Contains(distrosParams.Nome));
+                distrosQueryable = distrosQueryable.Where(c => c.Nome.Contains(distrosParams.Nome));
             }
-            var distrosFiltradas = PagedList<Distro>.ToPagedList(distros,
-            distrosParams.PageNumber, distrosParams.PageSize);
 
-            return distrosFiltradas;
+            // Paginacao
+            return PagedList<Distro>.ToPagedList(
+                distrosQueryable,
+                distrosParams.PageNumber,
+                distrosParams.PageSize);
         }
     }
 }

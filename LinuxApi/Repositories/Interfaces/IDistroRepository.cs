@@ -9,9 +9,9 @@ namespace LinuxApi.Repositories.Interfaces
         //metodo especifico so pra essa interface
         // IEnumerable<Distro> GetDistros(DistrosParameters distrosParameters);
 
-        PagedList<Distro> GetDistros(DistrosParameters distrosParameters);
+        Task<PagedList<Distro>> GetDistrosAsync(DistrosParameters distrosParameters);
         
-        PagedList<Distro> GetDistrosFiltroNome(DistroFiltroNome distrosParams);
+        Task<PagedList<Distro>> GetDistrosFiltroNomeAsync(DistroFiltroNome distrosParams);
 
         
     }

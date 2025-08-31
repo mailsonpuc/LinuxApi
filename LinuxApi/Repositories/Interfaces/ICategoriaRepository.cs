@@ -8,6 +8,6 @@ namespace LinuxApi.Repositories.Interfaces
     public interface ICategoriaRepository : IRepository<Categoria>
     {
         
-        PagedList<Categoria> GetCategorias(CategoriaParameters categoriaParameters);
+        Task<PagedList<Categoria>> GetCategoriasAsync(CategoriaParameters categoriaParameters);
     }
 }
