@@ -12,14 +12,7 @@ namespace LinuxApi.Repositories
         {
         }
 
-        // public IEnumerable<Distro> GetDistros(DistrosParameters distrosParams)
-        // {
-        //     return GetAll()
-        //         .OrderBy(p => p.Nome)
-        //         .Skip((distrosParams.PageNumber - 1) * distrosParams.PageSize)
-        //         .Take(distrosParams.PageSize)
-        //         .ToList();
-        // }
+      
 
         public PagedList<Distro> GetDistros(DistrosParameters distrosParams)
         {
@@ -29,14 +22,17 @@ namespace LinuxApi.Repositories
             return distrosOrdenadas;
         }
 
-
-
-
-        public IEnumerable<Distro> GetDistroPorCategoria(Guid id)
+        public PagedList<Distro> GetDistrosFiltroNome(DistroFiltroNome distrosParams)
         {
-            throw new NotImplementedException();
+            var distros = GetAll().AsQueryable();
+            if (!string.IsNullOrEmpty(distrosParams.Nome))
+            {
+                distros = distros.Where(c => c.Nome.Contains(distrosParams.Nome));
+            }
+            var distrosFiltradas = PagedList<Distro>.ToPagedList(distros,
+            distrosParams.PageNumber, distrosParams.PageSize);
+
+            return distrosFiltradas;
         }
-
-
     }
 }

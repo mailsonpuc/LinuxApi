@@ -45,6 +45,7 @@ namespace LinuxApi.Controllers
         }
 
 
+        //pagination
         [HttpGet("pagination")]
         //[FromQuery] pegar da string passada
         public ActionResult<IEnumerable<DistroDTO>> Pagination([FromQuery]
@@ -53,6 +54,12 @@ namespace LinuxApi.Controllers
             var distros = _uof.DistroRepository.GetDistros(distrosParameters);
 
             //variavel anonima
+            return ObterCategorias(distros);
+        }
+
+        //metodo extraido
+        private ActionResult<IEnumerable<DistroDTO>> ObterCategorias(PagedList<Distro> distros)
+        {
             var metadata = new
             {
                 distros.TotalCount,
@@ -68,6 +75,17 @@ namespace LinuxApi.Controllers
             Response.Headers.Append("X-Pagination-info", JsonConvert.SerializeObject(metadata));
             var distrosDto = distros.ToDistroDTOList();
             return Ok(distrosDto);
+        }
+
+
+        //filtro nome
+        [HttpGet("filter/nome/pagination")]
+        public ActionResult<IEnumerable<DistroDTO>> GetDistroFiltradas([FromQuery]
+                     DistroFiltroNome distroFiltroNome)
+        {
+            var distrosFiltradas = _uof.DistroRepository.GetDistrosFiltroNome(distroFiltroNome);
+            //chama o metodo extraido
+            return ObterCategorias(distrosFiltradas);
         }
 
 

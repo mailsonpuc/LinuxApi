@@ -10,7 +10,9 @@ namespace LinuxApi.Repositories.Interfaces
         // IEnumerable<Distro> GetDistros(DistrosParameters distrosParameters);
 
         PagedList<Distro> GetDistros(DistrosParameters distrosParameters);
-        IEnumerable<Distro> GetDistroPorCategoria(Guid id);
+        
+        PagedList<Distro> GetDistrosFiltroNome(DistroFiltroNome distrosParams);
+
         
     }
 }
