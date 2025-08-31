@@ -2,6 +2,7 @@
 
 using LinuxApi.Context;
 using LinuxApi.Models;
+using LinuxApi.Pagination;
 using LinuxApi.Repositories.Interfaces;
 
 namespace LinuxApi.Repositories
@@ -13,5 +14,16 @@ namespace LinuxApi.Repositories
         {
 
         }
+
+        public PagedList<Categoria> GetCategorias(CategoriaParameters categoriaParameters)
+        {
+            var categorias = GetAll().OrderBy(p => p.CategoriaId).AsQueryable();
+            var categoriasOrdenadas = PagedList<Categoria>.ToPagedList(categorias,
+                        categoriaParameters.PageNumber, categoriaParameters.PageSize);
+            return categoriasOrdenadas;
+        }
+
+
+
     }
 }

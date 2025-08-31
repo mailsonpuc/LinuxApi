@@ -12,28 +12,31 @@ namespace LinuxApi.Repositories
         {
         }
 
-        public IEnumerable<Distro> GetDistroPorCategoria(Guid id)
-        {
-            return _context.Distros
-                .Include(d => d.Categoria) // carrega também a categoria
-                .Where(d => d.CategoriaId == id)
-                .ToList();
-        }
-
-        // public IEnumerable<Distro> GetDistros(DistrosParameters distrosParameters)
+        // public IEnumerable<Distro> GetDistros(DistrosParameters distrosParams)
         // {
-        //     return _context.Distros
-        //         .Include(d => d.Categoria) //  trazer junto a categoria
+        //     return GetAll()
         //         .OrderBy(p => p.Nome)
-        //         .Skip((distrosParameters.PageNumber - 1) * distrosParameters.PageSize) 
-        //         .Take(distrosParameters.PageSize)
+        //         .Skip((distrosParams.PageNumber - 1) * distrosParams.PageSize)
+        //         .Take(distrosParams.PageSize)
         //         .ToList();
         // }
-        public PagedList<Distro> GetDistros(DistrosParameters distrosParameters)
+
+        public PagedList<Distro> GetDistros(DistrosParameters distrosParams)
         {
-            var distros = GetAll().OrderBy(d => d.DistroId).AsQueryable();
-            var distrosOrdenados = PagedList<Distro>.ToPagedList(distros, distrosParameters.PageNumber, distrosParameters.PageSize);
-            return distrosOrdenados;
+            var distros = GetAll().OrderBy(p => p.DistroId).AsQueryable();
+            var distrosOrdenadas = PagedList<Distro>.ToPagedList(distros,
+                        distrosParams.PageNumber, distrosParams.PageSize);
+            return distrosOrdenadas;
         }
+
+
+
+
+        public IEnumerable<Distro> GetDistroPorCategoria(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+
     }
 }

@@ -1,8 +1,10 @@
 using LinuxApi.DTOS;
 using LinuxApi.DTOS.Mappings;
 using LinuxApi.Models;
+using LinuxApi.Pagination;
 using LinuxApi.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace LinuxApi.Controllers
 {
@@ -40,6 +42,33 @@ namespace LinuxApi.Controllers
             }
 
             return Ok(categoria.ToCategoriaDTO());
+        }
+
+
+        [HttpGet("pagination")]
+        //[FromQuery] pegar da string passada
+        public ActionResult<IEnumerable<CategoriaDTO>> Pagination([FromQuery]
+                     CategoriaParameters categoriaParameters)
+        {
+            var categorias = _uof.CategoriaRepository.GetCategorias(categoriaParameters);
+
+            //variavel anonima
+            var metadata = new
+            {
+                categorias.TotalCount,
+                categorias.PageSize,
+                categorias.CurrentPage,
+                categorias.TotalPages,
+                categorias.HasNext,
+                categorias.HasPrevieus
+
+            };
+
+
+            Response.Headers.Append("X-Pagination-categoria", JsonConvert.SerializeObject(metadata));
+            var categoriasDto = categorias.ToCategoriaDTOList();
+            return Ok(categoriasDto);
+           
         }
 
         // POST
