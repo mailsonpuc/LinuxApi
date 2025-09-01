@@ -121,7 +121,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 
-
+builder.Services.AddMemoryCache(); //usando cache
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

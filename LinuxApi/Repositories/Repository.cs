@@ -17,6 +17,8 @@ namespace LinuxApi.Repositories
 
         public async Task<IEnumerable<T>> GetAllAsync()
         {
+            //simular pausar para ver se o cache tá funcionando
+            // System.Threading.Thread.Sleep(3000);
             return await _context.Set<T>().AsNoTracking().ToListAsync();
         }
 

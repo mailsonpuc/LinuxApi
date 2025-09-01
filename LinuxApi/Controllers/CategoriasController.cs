@@ -4,6 +4,7 @@ using LinuxApi.Models;
 using LinuxApi.Pagination;
 using LinuxApi.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 
 namespace LinuxApi.Controllers
@@ -14,20 +15,46 @@ namespace LinuxApi.Controllers
     {
         private readonly IUnitOfWork _uof;
         private readonly ILogger<CategoriasController> _logger;
+        private readonly IMemoryCache _cache;
+        private const string CacheCategoriasKey = "CacheCategorias";
 
-        public CategoriasController(IUnitOfWork uof, ILogger<CategoriasController> logger)
+        public CategoriasController(IUnitOfWork uof, ILogger<CategoriasController> logger, IMemoryCache cache)
         {
             _uof = uof;
             _logger = logger;
+            _cache = cache;
         }
 
         // GET ALL
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CategoriaDTO>>> GetAll()
         {
-            var categorias = await _uof.CategoriaRepository.GetAllAsync();
-            var categoriasDto = categorias.ToCategoriaDTOList();
-            return Ok(categoriasDto);
+            // Tenta obter os dados do cache.
+            if (_cache.TryGetValue(CacheCategoriasKey, out IEnumerable<Categoria> categorias))
+            {
+                _logger.LogInformation("Categorias obtidas do cache.");
+                var categoriasDto = categorias.ToCategoriaDTOList();
+                return Ok(categoriasDto);
+            }
+
+            // Se o cache não tiver dados, busca do banco de dados.
+            _logger.LogInformation("Buscando categorias do banco de dados...");
+            categorias = await _uof.CategoriaRepository.GetAllAsync();
+
+            if (categorias is null || !categorias.Any())
+            {
+                return NotFound("Nenhuma categoria encontrada.");
+            }
+
+            // Adiciona os dados ao cache.
+            var cacheEntryOptions = new MemoryCacheEntryOptions()
+                .SetSlidingExpiration(TimeSpan.FromSeconds(60))
+                .SetAbsoluteExpiration(TimeSpan.FromMinutes(5));
+
+            _cache.Set(CacheCategoriasKey, categorias, cacheEntryOptions);
+
+            var categoriasDtoSemCache = categorias.ToCategoriaDTOList();
+            return Ok(categoriasDtoSemCache);
         }
 
         // GET BY ID
@@ -60,8 +87,6 @@ namespace LinuxApi.Controllers
             var categoriasDto = categorias.ToCategoriaDTOList();
             return Ok(categoriasDto);
         }
-        
-        
 
         // POST
         [HttpPost]
@@ -75,6 +100,10 @@ namespace LinuxApi.Controllers
             var categoria = categoriaDto.ToCategoria();
             var categoriaCriada = await _uof.CategoriaRepository.CreateAsync(categoria);
             await _uof.CommitAsync();
+
+            // Invalida o cache após uma alteração.
+            _cache.Remove(CacheCategoriasKey);
+
             var categoriaCriadaDto = categoriaCriada.ToCategoriaDTO();
             return CreatedAtRoute("ObterCategoria", new { id = categoriaCriadaDto.CategoriaId }, categoriaCriadaDto);
         }
@@ -91,6 +120,10 @@ namespace LinuxApi.Controllers
             var categoria = categoriaDto.ToCategoria();
             var categoriaAtualizada = await _uof.CategoriaRepository.UpdateAsync(categoria);
             await _uof.CommitAsync();
+
+            // Invalida o cache após uma alteração.
+            _cache.Remove(CacheCategoriasKey);
+
             return Ok(categoriaAtualizada.ToCategoriaDTO());
         }
 
@@ -106,6 +139,10 @@ namespace LinuxApi.Controllers
             }
             var categoriaExcluida = await _uof.CategoriaRepository.DeleteAsync(categoria);
             await _uof.CommitAsync();
+
+            // Invalida o cache após uma alteração.
+            _cache.Remove(CacheCategoriasKey);
+
             return Ok(categoriaExcluida.ToCategoriaDTO());
         }
     }
