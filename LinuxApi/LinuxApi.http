@@ -1,5 +1,0 @@
-@LinuxApi_HostAddress = http://localhost:5198
-
-GET {{LinuxApi_HostAddress}}/api/Distros
-Accept: application/json
-

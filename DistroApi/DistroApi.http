@@ -1,0 +1,6 @@
+@DistroApi_HostAddress = http://localhost:5177
+
+GET {{DistroApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

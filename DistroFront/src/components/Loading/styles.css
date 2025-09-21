@@ -1,0 +1,59 @@
+/*-----------------------------*/
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+.loading-progress {
+    width: 3rem;
+    height: 3rem;
+    transform: rotate(-90deg);
+}
+
+.loading-progress circle {
+    fill: none;
+    stroke-width: 6;
+    stroke-linecap: round;
+}
+
+.loading-progress circle:first-child {
+    stroke: #e6e6e6;
+    /* fundo (cinza claro) */
+}
+
+.loading-progress circle:last-child {
+    stroke: #0078d4;
+    /* azul padrão do Blazor */
+    stroke-dasharray: 283;
+    stroke-dashoffset: 280;
+    animation: loading-progress 1.5s ease-in-out infinite;
+    transform-origin: 50% 50%;
+}
+
+@keyframes loading-progress {
+    0% {
+        stroke-dashoffset: 280;
+        transform: rotate(0deg);
+    }
+
+    50% {
+        stroke-dashoffset: 75;
+        transform: rotate(135deg);
+    }
+
+    100% {
+        stroke-dashoffset: 280;
+        transform: rotate(450deg);
+    }
+}
+
+.loading-progress-text {
+    margin-top: 1rem;
+    font-family: sans-serif;
+    font-size: 0.9rem;
+    color: #555;
+    text-align: center;
+}
