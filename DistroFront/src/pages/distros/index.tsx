@@ -4,25 +4,44 @@ import { useEffect, useState } from "react";
 import './distros.css';
 import Loading from "../../components/loading";
 
-// Importa apenas a interface Distro (que já importa Categoria internamente)
 import { type Distro } from '../../interfaces/Idistros';
+import { type Categoria } from '../../interfaces/Icategoria'; // Precisamos desta interface!
 
 export function Distros() {
-    // Tipagem correta do estado: array de Distros
-    const [distro, setDistro] = useState<Distro[]>([]);
+    const [distros, setDistros] = useState<Distro[]>([]);
+    // Novo estado para armazenar o mapa de categorias
+    const [categoriasMap, setCategoriasMap] = useState<Map<string, Categoria>>(new Map());
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch("http://localhost:5177/api/Distros")
-            .then((r) => r.json())
-            .then((json: Distro[]) => { // Usando a tipagem para o JSON
-                setDistro(json);
+        // Funções assíncronas para buscar os dados
+        async function fetchData() {
+            setLoading(true);
+            try {
+                // 1. Busca as Distros
+                const distrosResponse = await fetch("https://apireact-dcarhnh2g3dtdehf.brazilsouth-01.azurewebsites.net/api/Distros");
+                const distrosJson: Distro[] = await distrosResponse.json();
+
+                // 2. Busca as Categorias
+                const categoriasResponse = await fetch("https://apireact-dcarhnh2g3dtdehf.brazilsouth-01.azurewebsites.net/api/Categorias");
+                const categoriasJson: Categoria[] = await categoriasResponse.json();
+
+                // 3. Cria um Map (ótimo para buscas rápidas por ID)
+                const map = new Map<string, Categoria>();
+                categoriasJson.forEach(cat => map.set(cat.categoriaId, cat));
+
+                // Salva os dados nos estados
+                setDistros(distrosJson);
+                setCategoriasMap(map);
+
+            } catch (error) {
+                console.error("Erro ao carregar dados:", error);
+            } finally {
                 setLoading(false);
-            })
-            .catch(error => {
-                console.error("Erro ao carregar distros:", error);
-                setLoading(false);
-            });
+            }
+        }
+
+        fetchData();
     }, []);
 
     if (loading) {
@@ -31,16 +50,22 @@ export function Distros() {
 
     return (
         <div className="container">
-            {distro.map((item) => {
+            {distros.map((item) => {
+                // Procura o nome da categoria no Map usando o categoriaId da distro
+                const categoriaNome = categoriasMap.get(item.categoriaId)?.nome || "Categoria Desconhecida";
+
                 return (
                     <article key={item.distroId} className="posts">
                         <strong className="titulo">{item.nome}</strong>
                         <img className="capa" src={item.imageUrl} alt={item.nome} />
                         <p className="subtitulo">{item.descricao}</p>
-                        
-                        {/* Acesso corrigido, item.categoria é um objeto com a propriedade .nome */}
-                        <p className="subtitulo"><strong>Categoria: </strong>{item.categoria.nome}</p>
-                        
+
+                        {/* Usa string categoriaNome */}
+                        <p className="subtitulo">
+                            <strong>Categoria: </strong>
+                            {categoriaNome}
+                        </p>
+
                         <a className="botao"
                             href={item.iso}
                             target="_blank"
@@ -53,3 +78,5 @@ export function Distros() {
         </div>
     );
 }
+
+export default Distros;

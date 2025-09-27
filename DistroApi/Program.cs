@@ -1,6 +1,8 @@
 using System.Text;
 using DistroApi.Context;
 using DistroApi.Models;
+using DistroApi.Repositories;
+using DistroApi.Repositories.interfaces;
 using DistroApi.Servies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -75,14 +77,14 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer("  "));
 
 
 
 //repositories
-// builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
-// builder.Services.AddScoped<IDistroRepository, DistroRepository>();
-// builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
+builder.Services.AddScoped<IDistroRepository, DistroRepository>();
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 // builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 
@@ -126,15 +128,23 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 // Pipeline HTTP
-if (app.Environment.IsDevelopment())
+// if (app.Environment.IsDevelopment())
+// {
+//     app.UseSwagger();
+//     app.UseSwaggerUI(opt =>
+//     {
+//         opt.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+//         opt.RoutePrefix = string.Empty; // Swagger UI na raiz
+//     });
+// }
+
+app.UseSwagger();
+app.UseSwaggerUI(opt =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(opt =>
-    {
-        opt.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-        opt.RoutePrefix = string.Empty; // Swagger UI na raiz
-    });
-}
+    opt.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+    opt.RoutePrefix = string.Empty; // Swagger UI na raiz
+});
+
 
 
 app.UseCors("AllowAllOrigins");

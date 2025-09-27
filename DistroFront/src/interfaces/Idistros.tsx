@@ -1,14 +1,15 @@
 // src/interfaces/Idistros.tsx
 
-// Importa a interface da Categoria
-import { type Categoria } from "./Icategoria";
+// Não precisa importar Categoria aqui, pois ela não está aninhada
 
 export interface Distro {
     distroId: string;
+    imageUrl: string;
     nome: string;
     descricao: string;
-    imageUrl: string;
     iso: string;
-    // A propriedade 'categoria' agora é do tipo Categoria (o objeto)
-    categoria: Categoria;
+    // CORREÇÃO: Usar apenas categoriaId (string/GUID)
+    categoriaId: string; 
+    
+    // Remova a linha 'categoria: Categoria;'
 }

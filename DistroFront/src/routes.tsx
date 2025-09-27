@@ -46,7 +46,7 @@ const router = createBrowserRouter([
                 ]
             },
 
-            // 3. Rota de Erro (Geralmente a última)
+            // 3. Rota de Erro ( a última)
             {
                 path: "*",
                 element: <NotFound />

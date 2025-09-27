@@ -43,7 +43,7 @@ export function Header() {
             window.removeEventListener('storage', checkAuthStatus);
         };
 
-        // 💡 Ajuste Crucial: Adicione location.pathname como dependência.
+        //  Adiciona location.pathname como dependência.
     }, [location.pathname]);
 
     // Tipagem: o 'handleLogout' não precisa de argumentos
@@ -55,8 +55,7 @@ export function Header() {
 
         setLoggedInUser(null);
 
-        // Ao invés de apenas navegar, você pode forçar a recarga do estado
-        // do componente PrivateRoute (embora 'navigate' deva funcionar)
+        
         navigate('/login', { replace: true });
     };
 

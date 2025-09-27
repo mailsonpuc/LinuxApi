@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/ca1430be-1619-482d-a44b-5c0510c2cb0b/resourceGroups/app/providers/Microsoft.Web/sites/apireact",
+    "appService.deploySubpath": "DistroApi/bin/Publish"
+}

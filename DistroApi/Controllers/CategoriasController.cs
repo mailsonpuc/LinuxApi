@@ -1,12 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+using DistroApi.Context;
+using DistroApi.DTOS;
+using DistroApi.DTOS.Mappings;
+using DistroApi.Models;
+using DistroApi.Repositories.interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using DistroApi.Context;
-using DistroApi.Models;
 
 namespace DistroApi.Controllers
 {
@@ -14,99 +12,94 @@ namespace DistroApi.Controllers
     [ApiController]
     public class CategoriasController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly ICategoriaRepository _repository;
+        private readonly AppDbContext _context; // usando o SaveChangesAsync com AppDbContext
 
-        public CategoriasController(AppDbContext context)
+        public CategoriasController(ICategoriaRepository repository, AppDbContext context)
         {
+            _repository = repository;
             _context = context;
         }
 
-
-        /// <summary>
-        /// Obtem todas as categorias.
-        /// </summary>
         // GET: api/Categorias
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Categoria>>> GetCategorias()
+        public async Task<ActionResult<IEnumerable<CategoriaDTO>>> GetCategorias()
         {
-            return await _context.Categorias.ToListAsync();
+            var categorias = await _repository.GetAllAsync();
+            return Ok(categorias.ToCategoriaoDTOList());
         }
 
         // GET: api/Categorias/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Categoria>> GetCategoria(Guid id)
+        public async Task<ActionResult<CategoriaDTO>> GetCategoria(Guid id)
         {
-            var categoria = await _context.Categorias.FindAsync(id);
+            var categoria = await _repository.GetAsync(c => c.CategoriaId == id);
 
             if (categoria == null)
             {
                 return NotFound();
             }
 
-            return categoria;
+            return Ok(categoria.ToCategoiaDTO());
         }
 
         // PUT: api/Categorias/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCategoria(Guid id, Categoria categoria)
+        public async Task<IActionResult> PutCategoria(Guid id, CategoriaDTO categoriaDto)
         {
-            if (id != categoria.CategoriaId)
+            if (id != categoriaDto.CategoriaId)
             {
                 return BadRequest();
             }
 
-            _context.Entry(categoria).State = EntityState.Modified;
+            var categoria = categoriaDto.ToCategoria();
 
+            _repository.Update(categoria);
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!CategoriaExists(id))
+                var exists = await _repository.GetAsync(c => c.CategoriaId == id);
+                if (exists == null)
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+                throw;
             }
 
             return NoContent();
         }
 
         // POST: api/Categorias
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Categoria>> PostCategoria(Categoria categoria)
+        public async Task<ActionResult<CategoriaDTO>> PostCategoria(CategoriaDTO categoriaDto)
         {
-            _context.Categorias.Add(categoria);
+            var categoria = categoriaDto.ToCategoria();
+
+            _repository.Create(categoria);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetCategoria", new { id = categoria.CategoriaId }, categoria);
+            return CreatedAtAction(nameof(GetCategoria),
+                new { id = categoria.CategoriaId },
+                categoria.ToCategoiaDTO());
         }
 
         // DELETE: api/Categorias/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategoria(Guid id)
         {
-            var categoria = await _context.Categorias.FindAsync(id);
+            var categoria = await _repository.GetAsync(c => c.CategoriaId == id);
             if (categoria == null)
             {
                 return NotFound();
             }
 
-            _context.Categorias.Remove(categoria);
+            _repository.Delete(categoria);
             await _context.SaveChangesAsync();
 
             return NoContent();
-        }
-
-        private bool CategoriaExists(Guid id)
-        {
-            return _context.Categorias.Any(e => e.CategoriaId == id);
         }
     }
 }

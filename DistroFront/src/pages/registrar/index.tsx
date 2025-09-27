@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import './registrar.css';
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 import { type RegisterResponse } from "../../interfaces/IregisterResponse";
 
 
@@ -27,7 +27,7 @@ export function Registrar() {
 
         try {
             // Requisição POST usando fetch
-            const response = await fetch('http://localhost:5177/api/Auth/register', {
+            const response = await fetch('https://apireact-dcarhnh2g3dtdehf.brazilsouth-01.azurewebsites.net/api/Auth/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -35,15 +35,12 @@ export function Registrar() {
                 body: JSON.stringify(data)
             });
 
-            // Converte o corpo da resposta para JSON
             const responseData: RegisterResponse = await response.json();
 
-            // Verifica se a resposta não foi bem-sucedida (status 4xx ou 5xx)
             if (!response.ok) {
-                // Se a API não retornar uma mensagem no erro, usaremos a mensagem padrão
                 throw new Error(responseData.message || `Falha no registro com status: ${response.status}.`);
             }
-            
+
             // Verifica o status do corpo da resposta, apenas para redundância, se o status for 200/201
             if (responseData.status !== "Success") {
                 throw new Error(responseData.message || "Registro falhou após a requisição.");
@@ -51,7 +48,7 @@ export function Registrar() {
 
             console.log("Registro bem-sucedido:", responseData);
             alert("Usuário registrado com sucesso! 🎉");
-            
+
             // Limpa os campos
             setUsername('');
             setEmail('');
@@ -61,7 +58,6 @@ export function Registrar() {
             navigate('/login');
 
         } catch (error: any) {
-            // Captura e exibe a mensagem de erro da API ou a mensagem de falha da rede/código
             console.error("Erro ao registrar:", error.message);
             alert(error.message);
         }

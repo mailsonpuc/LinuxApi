@@ -8,8 +8,8 @@ import { type AuthResponse } from "../../interfaces/IauthResponse";
 
 export function Login() {
     // Definindo os estados para o nome de usuário e senha
-    const [userName, setUserName] = useState("mailson");
-    const [password, setPassword] = useState("Nunsey#Senha321");
+    const [userName, setUserName] = useState("");
+    const [password, setPassword] = useState("");
     const navigate = useNavigate();
 
     // Tipagem correta para o evento de submit do formulário
@@ -29,7 +29,7 @@ export function Login() {
 
         try {
             // Requisição POST usando fetch
-            const response = await fetch('http://localhost:5177/api/Auth/login', {
+            const response = await fetch('https://apireact-dcarhnh2g3dtdehf.brazilsouth-01.azurewebsites.net/api/Auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -47,7 +47,6 @@ export function Login() {
             // Converte o corpo da resposta para JSON
             const authData: AuthResponse = await response.json();
 
-            // Decodifica o token (o token não mudou, mas o objeto de resposta, sim)
             const decodedToken: any = jwtDecode(authData.token);
             const loggedInUserName = decodedToken.unique_name;
 
@@ -55,7 +54,6 @@ export function Login() {
             localStorage.setItem('userName', loggedInUserName);
             localStorage.setItem('authToken', authData.token);
 
-            // Recomenda-se também armazenar o refresh token e a expiração, se necessário
             localStorage.setItem('refreshToken', authData.refreshToken);
             localStorage.setItem('tokenExpiration', authData.expiration);
 
