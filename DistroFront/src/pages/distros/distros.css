@@ -4,7 +4,6 @@ body {
     box-sizing: border-box;
 }
 
-
 .container {
     display: flex;
     flex-direction: column;
@@ -17,28 +16,34 @@ body {
 .capa {
     width: 300px;
 }
+
 .posts {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    width: 700px;
-    background-color:#FFF;
+    width: 700px; /* Mantém 700px para desktop */
+    background-color: #FFF; /* Mantém branco para desktop */
     border-radius: 8px;
     border-width: 1px;
     margin: 8px;
     padding: 10px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Sombra suave para desktop */
 }
 
 .titulo {
     font-size: 25px;
     margin-top: 10px;
     margin-bottom: 25px;
+    text-align: center; /* Centraliza o título */
 }
 
 .subtitulo {
     margin-top: 10px;
     margin-bottom: 8px;
+    text-align: center; /* Centraliza o subtítulo no desktop também */
+    font-size: 16px;
+    color: #555; /* Cor mais suave para o subtítulo */
 }
 
 .botao {
@@ -52,12 +57,83 @@ body {
     align-items: center;
     font-size: 18px;
     font-weight: bold;
-    transition: all 0.5s;
-    width: 600px;
+    transition: all 0.3s;
+    width: 600px; /* Mantém 600px para desktop */
     text-decoration: none;
+    cursor: pointer;
 }
 
 .botao:hover {
     background-color: #4c89e3;
     color: #FFF;
+}
+
+/* ------------------- */
+/* Versão MOBILE (max-width: 720px) */
+/* ------------------- */
+@media only screen and (max-width: 720px) {
+
+    /* Cor de fundo do body na versão mobile */
+    body {
+        background-color: #f0f2f5; /* Um cinza claro suave */
+    }
+
+    .container {
+        /* Remove o min-height: 100vh para permitir rolagem natural */
+        width: 100%;
+        padding: 0;
+        margin: 0;
+    }
+
+    .posts {
+        /* Configurações para mobile */
+        width: 95%; /* Ocupa a maior parte da tela */
+        max-width: 400px; /* Limita a largura máxima para tablets pequenos */
+        margin: 15px auto; /* Centraliza com margem em cima e embaixo */
+        padding: 15px; /* Mais preenchimento */
+        
+        /* REMOVENDO A COR BRANCA E A SOMBRA (Fica "transparente" e herda a cor do body) */
+        background-color: transparent; 
+        border: none; /* Remove a borda se houver */
+        box-shadow: none; /* Remove a sombra */
+    }
+
+    .capa {
+        /* Aumenta a imagem para preencher um pouco mais no mobile */
+        width: 90%; 
+        max-width: 350px;
+        height: auto;
+        border-radius: 6px; /* Adiciona um pequeno arredondamento */
+    }
+    
+    .titulo {
+        font-size: 22px; /* Título um pouco menor */
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+
+    .subtitulo {
+        /* CORREÇÃO DO SUBTÍTULO */
+        width: 100%; /* Ocupa a largura total do .posts */
+        max-width: none; /* Remove o max-width de 40% que estava limitando */
+        margin-left: 0;
+        margin-right: 0;
+        font-size: 14px; /* Fonte menor */
+        padding: 0 10px; /* Pequeno espaçamento lateral para não encostar na borda */
+    }
+
+    .botao {
+        /* MELHORIA DO BOTÃO */
+        width: 90%; /* Ocupa a maior parte da largura no mobile */
+        max-width: 300px; /* Um limite razoável */
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .botao:hover {
+        /* Mantém o efeito hover */
+        background-color: #4c89e3;
+        color: #FFF;
+    }
+
 }

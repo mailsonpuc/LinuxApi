@@ -85,3 +85,34 @@ header a + a {
     align-items: center;
     gap: 10px; /* Adiciona um espaçamento de 10px entre os links */
 }
+
+
+/* ------------------- */
+/* Versão MOBILE (max-width: 720px) */
+/* ------------------- */
+@media only screen and (max-width: 720px) {
+
+    /* Esconde a mensagem "Olá, usuário!" no mobile */
+    .welcome-message {
+        display: none;
+    }
+
+    /* Opcional: Ajuste para os links e botões no mobile */
+    header {
+        height: 60px; /* Reduz a altura do cabeçalho */
+        padding: 0 10px;
+    }
+    
+    header a {
+        font-size: 16px; /* Reduz o tamanho da fonte dos links */
+    }
+
+    .user-info, .auth-links {
+        gap: 5px; /* Reduz o espaçamento entre os elementos */
+    }
+
+    .logout-button, .login-link {
+        padding: 4px 8px; /* Reduz o padding dos botões/links */
+        font-size: 14px;
+    }
+}

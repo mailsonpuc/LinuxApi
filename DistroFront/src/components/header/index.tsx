@@ -63,7 +63,7 @@ export function Header() {
     return (
         <header>
             <h2>
-                <Link to="/">Distros Linux App</Link>
+                <Link to="/">Linux App</Link>
             </h2>
 
             {loggedInUser ? (
