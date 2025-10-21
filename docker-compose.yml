@@ -1,0 +1,40 @@
+version: '3.9'
+
+services:
+  # 🧠 Banco de dados
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: distro_db
+    environment:
+      SA_PASSWORD: "Your_password123"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+
+  # ⚙️ Backend .NET 9
+  api:
+    build: ./DistroApi
+    container_name: distro_api
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ConnectionStrings__DefaultConnection: "Server=db;Database=DistroDB;User=sa;Password=1q2w3e4r@#$;TrustServerCertificate=True;"
+    depends_on:
+      - db
+
+  # 💻 Frontend React (Vite)
+  front:
+    build: ./DistroFront
+    container_name: distro_front
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+    environment:
+      - VITE_API_URL=http://localhost:8080
+
+volumes:
+  sql_data:

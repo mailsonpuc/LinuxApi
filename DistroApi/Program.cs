@@ -77,7 +77,17 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer("  "));
+{
+    var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+    if (string.IsNullOrEmpty(connectionString))
+    {
+        throw new Exception("A variável de ambiente ConnectionStrings__DefaultConnection não está definida.");
+    }
+    options.UseSqlServer(connectionString);
+});
+
+
+
 
 
 
@@ -126,17 +136,15 @@ builder.Services.AddMemoryCache(); //usando cache
 builder.Services.AddScoped<ITokenService, TokenService>();
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-// Pipeline HTTP
-// if (app.Environment.IsDevelopment())
-// {
-//     app.UseSwagger();
-//     app.UseSwaggerUI(opt =>
-//     {
-//         opt.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-//         opt.RoutePrefix = string.Empty; // Swagger UI na raiz
-//     });
-// }
+
+// Aplicar migrations automaticamente DEPOIS de criar o app
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
+
+
 
 app.UseSwagger();
 app.UseSwaggerUI(opt =>
