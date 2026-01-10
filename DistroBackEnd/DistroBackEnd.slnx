@@ -1,0 +1,13 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="Distro.API/Distro.API.csproj" />
+  <Project Path="Distro.Application/Distro.Application.csproj" />
+  <Project Path="Distro.Domain.Test/Distro.Domain.Test.csproj" />
+  <Project Path="Distro.Domain/Distro.Domain.csproj" />
+  <Project Path="Distro.Infra.Data/Distro.Infra.Data.csproj" />
+  <Project Path="Distro.Infra.IoC/Distro.Infra.IoC.csproj" />
+</Solution>
