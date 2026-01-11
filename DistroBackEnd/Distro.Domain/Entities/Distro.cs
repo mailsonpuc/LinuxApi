@@ -2,6 +2,7 @@ using Distro.Domain.Validation;
 
 namespace Distro.Domain.Entities;
 
+#nullable disable
 public sealed class Distro
 {
     public Guid DistroId { get; private set; }
