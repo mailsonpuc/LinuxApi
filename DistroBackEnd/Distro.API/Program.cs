@@ -1,8 +1,14 @@
+using Distro.Infra.IoC;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+
+//  conecta o Infra.IoC
+builder.Services.AddInfrastructureIoC(builder.Configuration);
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
