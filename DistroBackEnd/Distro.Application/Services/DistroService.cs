@@ -43,27 +43,45 @@ namespace Distro.Application.Services
 
         public async Task<DistroDTO> CreateDistro(DistroDTO distroDTO)
         {
-            if (distroDTO == null)
-                throw new ArgumentNullException(nameof(distroDTO));
+            var entity = new Domain.Entities.Distro(
+                imageUrl: distroDTO.ImageUrl,
+                nome: distroDTO.Nome,
+                descricao: distroDTO.Descricao,
+                iso: distroDTO.Iso,
+                categoryId: distroDTO.CategoryId
+            );
 
-            var distroEntity = _mapper.Map<Distro.Domain.Entities.Distro>(distroDTO);
+            await _distroRepository.AddDistroAsync(entity);
 
-            await _distroRepository.AddDistroAsync(distroEntity);
-
-            return _mapper.Map<DistroDTO>(distroEntity);
+            return _mapper.Map<DistroDTO>(entity);
         }
+
 
         public async Task<DistroDTO> UpdateDistro(DistroDTO distroDTO)
         {
             if (distroDTO == null)
                 throw new ArgumentNullException(nameof(distroDTO));
 
-            var distroEntity = _mapper.Map<Distro.Domain.Entities.Distro>(distroDTO);
+            var distroEntity = await _distroRepository.GetDistroByIdAsync(distroDTO.DistroId);
+
+            if (distroEntity == null)
+                return null;
+
+            distroEntity.Update(
+                distroDTO.ImageUrl,
+                distroDTO.Nome,
+                distroDTO.Descricao,
+                distroDTO.Iso,
+                distroDTO.CategoryId
+            );
 
             await _distroRepository.UpdateDistroAsync(distroEntity);
 
             return _mapper.Map<DistroDTO>(distroEntity);
         }
+
+
+
 
         public async Task<bool> DeleteDistro(Guid? id)
         {

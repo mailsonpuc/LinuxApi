@@ -7,8 +7,8 @@ namespace Distro.Application.Mappings
     {
         public DomainToDTOMappingProfile()
         {
-            CreateMap<Distro.Domain.Entities.Distro, DistroDTO>().ReverseMap();
-            CreateMap<Distro.Domain.Entities.Category, CategoryDTO>().ReverseMap();
+            CreateMap<Distro.Domain.Entities.Distro, DistroDTO>();
+            CreateMap<Distro.Domain.Entities.Category, CategoryDTO>();
         }
     }
 }

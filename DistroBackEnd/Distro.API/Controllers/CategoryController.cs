@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Distro.API.Controllers
 {
     [ApiController]
+    [Produces("application/json")]
     [Route("api/[controller]")]
     public class CategoryController : ControllerBase
     {
@@ -26,7 +27,7 @@ namespace Distro.API.Controllers
             return Ok(categories);
         }
 
-        
+
 
         // GET: api/category/{id}
         [HttpGet("{id:guid}")]
