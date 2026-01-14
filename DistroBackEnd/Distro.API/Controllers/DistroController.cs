@@ -4,10 +4,13 @@ using System.Threading.Tasks;
 using Distro.Application.DTOs;
 using Distro.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+
 
 namespace Distro.API.Controllers
 {
     [ApiController]
+    [Authorize]
     [Produces("application/json")]
     [Route("api/[controller]")]
     public class DistroController : ControllerBase

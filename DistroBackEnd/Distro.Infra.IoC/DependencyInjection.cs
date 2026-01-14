@@ -1,12 +1,18 @@
+using System.Text;
 using Distro.Application.Interfaces;
 using Distro.Application.Mappings;
 using Distro.Application.Services;
+using Distro.Domain.Account;
 using Distro.Domain.Interfaces;
 using Distro.Infra.Data.Context;
+using Distro.Infra.Data.Identity;
 using Distro.Infra.Data.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Distro.Infra.IoC
 {
@@ -39,6 +45,54 @@ namespace Distro.Infra.IoC
                     b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)
                 )
             );
+
+
+            // ===============================
+            // CONFIGURAÇÃO DO ASP.NET IDENTITY
+            // ===============================
+            services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
+
+            // ===============================
+            // CONFIGURAÇÃO DO JWT
+            // ===============================
+            var jwtSettings = configuration.GetSection("Jwt");
+            var secretKey = jwtSettings.GetValue<string>("SecretKey");
+
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.RequireHttpsMetadata = false;
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+
+                    ValidIssuer = jwtSettings["Issuer"],
+                    ValidAudience = jwtSettings["Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(secretKey!)
+                    ),
+                    ClockSkew = TimeSpan.Zero
+                };
+            });
+
+
+
+            // ===============================
+            // SERVIÇO DE AUTENTICAÇÃO
+            // ===============================
+            services.AddScoped<IAuthenticate, AuthenticateService>();
+
 
             // ===============================
             // REGISTRO DOS REPOSITÓRIOS
