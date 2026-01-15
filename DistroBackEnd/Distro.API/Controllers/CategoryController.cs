@@ -5,9 +5,13 @@ using Distro.Application.DTOs;
 using Distro.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace Distro.API.Controllers
 {
+    /// <summary>
+    /// Controller responsável pelo gerenciamento de categorias de distribuições.
+    /// </summary>
     [ApiController]
     [Authorize]
     [Produces("application/json")]
@@ -21,18 +25,33 @@ namespace Distro.API.Controllers
             _categoryService = categoryService;
         }
 
-        // GET: api/category
+        /// <summary>
+        /// Obtém a lista de todas as categorias cadastradas.
+        /// </summary>
+        /// <returns>Uma coleção de objetos CategoryDTO.</returns>
+        /// <response code="200">Retorna a lista de categorias.</response>
+        /// <response code="401">Usuário não autenticado.</response>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetAll()
         {
             var categories = await _categoryService.GetCategories();
             return Ok(categories);
         }
 
-
-
-        // GET: api/category/{id}
+        /// <summary>
+        /// Obtém uma categoria específica através do seu identificador único (GUID).
+        /// </summary>
+        /// <param name="id">O identificador único da categoria.</param>
+        /// <returns>Os detalhes da categoria solicitada.</returns>
+        /// <response code="200">Retorna a categoria encontrada.</response>
+        /// <response code="404">Categoria não encontrada.</response>
+        /// <response code="401">Usuário não autenticado.</response>
         [HttpGet("{id:guid}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<CategoryDTO>> GetById(Guid id)
         {
             var category = await _categoryService.GetCategoryById(id);
@@ -43,8 +62,18 @@ namespace Distro.API.Controllers
             return Ok(category);
         }
 
-        // POST: api/category
+        /// <summary>
+        /// Cria uma nova categoria no sistema.
+        /// </summary>
+        /// <param name="categoryDto">Objeto contendo os dados da nova categoria.</param>
+        /// <returns>A categoria recém-criada.</returns>
+        /// <response code="201">Categoria criada com sucesso.</response>
+        /// <response code="400">Dados fornecidos são inválidos.</response>
+        /// <response code="401">Usuário não autenticado.</response>
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<CategoryDTO>> Create([FromBody] CategoryDTO categoryDto)
         {
             if (categoryDto == null)
@@ -59,8 +88,21 @@ namespace Distro.API.Controllers
             );
         }
 
-        // PUT: api/category/{id}
+        /// <summary>
+        /// Atualiza os dados de uma categoria existente.
+        /// </summary>
+        /// <param name="id">Identificador da categoria a ser atualizada.</param>
+        /// <param name="categoryDto">Objeto com os novos dados da categoria.</param>
+        /// <returns>A categoria atualizada.</returns>
+        /// <response code="200">Categoria atualizada com sucesso.</response>
+        /// <response code="400">Inconsistência entre o ID da URL e o ID do objeto.</response>
+        /// <response code="404">Categoria não encontrada para atualização.</response>
+        /// <response code="401">Usuário não autenticado.</response>
         [HttpPut("{id:guid}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<CategoryDTO>> Update(Guid id, [FromBody] CategoryDTO categoryDto)
         {
             if (categoryDto == null || id != categoryDto.CategoryId)
@@ -74,8 +116,18 @@ namespace Distro.API.Controllers
             return Ok(updatedCategory);
         }
 
-        // DELETE: api/category/{id}
+        /// <summary>
+        /// Remove uma categoria do sistema.
+        /// </summary>
+        /// <param name="id">Identificador da categoria a ser excluída.</param>
+        /// <returns>Resposta sem conteúdo em caso de sucesso.</returns>
+        /// <response code="204">Categoria removida com sucesso.</response>
+        /// <response code="404">Categoria não encontrada.</response>
+        /// <response code="401">Usuário não autenticado.</response>
         [HttpDelete("{id:guid}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult> Delete(Guid id)
         {
             var result = await _categoryService.DeleteCategory(id);

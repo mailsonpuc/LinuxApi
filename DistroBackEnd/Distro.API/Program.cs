@@ -17,15 +17,13 @@ builder.Services.AddInfrastructureSwagger(builder.Configuration);
 
 
 
-// Swagger UI
-builder.Services.AddSwaggerGen();
-
+// NSwag.AspNetCore Swagger UI
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseOpenApi();     
-    app.UseSwaggerUi();   
+    app.UseOpenApi();      
+    app.UseSwaggerUi();  
 }
 
 
