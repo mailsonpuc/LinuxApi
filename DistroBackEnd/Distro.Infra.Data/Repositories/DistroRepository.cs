@@ -33,7 +33,7 @@ public class DistroRepository : IDistroRepository
 
     public async Task<IEnumerable<Domain.Entities.Distro>> GetAllDistrosAsync()
     {
-        return await _context.Distros.ToListAsync();
+        return await _context.Distros.AsNoTracking().ToListAsync();
     }
 
     public async Task<Domain.Entities.Distro?> GetDistroByIdAsync(Guid distroId)

@@ -24,6 +24,7 @@ namespace Distro.API.Controllers
 
         // GET: api/Distro
         [HttpGet]
+        [ResponseCache(VaryByHeader = "User-Agent", Location = ResponseCacheLocation.Any, Duration = 60)]
         public async Task<ActionResult<IEnumerable<DistroDTO>>> GetAll()
         {
             var distros = await _distroService.GetDistros();
