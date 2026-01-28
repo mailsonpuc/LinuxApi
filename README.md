@@ -291,16 +291,3 @@ Lá é possível testar os endpoints e preencher o campo Authorization (Bearer t
 - E-mail (exemplo usado no projeto): mailson.costa@protonmail.com
 
 ---
-
-## Licença
-
-A licença não está explicitada no repositório. Adicione um arquivo `LICENSE` com a licença desejada (MIT, Apache-2.0, etc.) se quiser deixar explícito o uso.
-
----
-
-Se quiser, eu posso:
-- abrir um Pull Request com este README.md no repositório,
-- ou gerar um README mais detalhado incluindo exemplos reais dos DTOs (posso ler os arquivos DTO e gerar payloads exatos),
-- ou adicionar instruções para implantação em Docker / Azure / AWS.
-
-Diga qual opção prefere que eu faça a seguir.
