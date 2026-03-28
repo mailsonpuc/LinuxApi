@@ -13,7 +13,7 @@ namespace Distro.API.Controllers
     /// Controller responsável pelo gerenciamento de categorias de distribuições.
     /// </summary>
     [ApiController]
-    [Authorize]
+    //[Authorize]
     [Produces("application/json")]
     [Route("api/[controller]")]
     public class CategoryController : ControllerBase

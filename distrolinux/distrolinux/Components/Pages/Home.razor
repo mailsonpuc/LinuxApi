@@ -1,0 +1,80 @@
+﻿@page "/"
+
+<PageTitle>Home</PageTitle>
+
+<Header />
+
+
+@if (isLoading)
+{
+    <p>Loading...</p>
+}
+
+
+else if (errorMessage != null)
+{
+    <p>Error: @errorMessage</p>
+}
+
+
+else if (distros != null && distros.Any())
+{
+    <div class="container ">
+
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+            @foreach (var distro in distros)
+            {
+                <div style="border: 1px solid #ccc; padding: 10px;">
+                    <h3>@distro.nome</h3>
+                    <p>@distro.descricao</p>
+                    <img width="200px" src="@distro.imageUrl" alt="@distro.nome" />
+                    <p>ISO: <a href="@distro.iso" target="_blank">Download</a></p>
+                </div>
+            }
+        </div>
+
+    </div>
+
+
+}
+
+
+
+
+
+
+@code
+{
+    private List<Distro>? distros;
+    private string? errorMessage;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+            distros = await client.GetFromJsonAsync<List<Distro>>("http://localhost:5130/api/Distro");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+
+    private class Distro
+    {
+        public Guid distroId { get; set; }
+        public string? imageUrl { get; set; }
+        public string? nome { get; set; }
+        public string? descricao { get; set; }
+        public string? iso { get; set; }
+        public Guid categoryId { get; set; }
+    }
+}

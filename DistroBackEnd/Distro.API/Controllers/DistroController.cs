@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace Distro.API.Controllers
 {
     [ApiController]
-    [Authorize]
+    //[Authorize]
     [Produces("application/json")]
     [Route("api/[controller]")]
     public class DistroController : ControllerBase
