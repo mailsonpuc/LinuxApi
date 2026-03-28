@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using AutoMapper;
 using Distro.Application.DTOs;
 using Distro.Application.Interfaces;
+using Distro.Application.Mappings;
 using Distro.Domain.Entities;
 using Distro.Domain.Interfaces;
 
@@ -12,20 +13,16 @@ namespace Distro.Application.Services
     public class DistroService : IDistroService
     {
         private readonly IDistroRepository _distroRepository;
-        private readonly IMapper _mapper;
 
-        public DistroService(
-            IDistroRepository distroRepository,
-            IMapper mapper)
+        public DistroService(IDistroRepository distroRepository)
         {
             _distroRepository = distroRepository;
-            _mapper = mapper;
         }
 
         public async Task<IEnumerable<DistroDTO>> GetDistros()
         {
             var distrosEntity = await _distroRepository.GetAllDistrosAsync();
-            return _mapper.Map<IEnumerable<DistroDTO>>(distrosEntity);
+            return distrosEntity.ToDto();
         }
 
         public async Task<DistroDTO> GetDistroById(Guid? id)
@@ -38,22 +35,16 @@ namespace Distro.Application.Services
             if (distroEntity == null)
                 return null;
 
-            return _mapper.Map<DistroDTO>(distroEntity);
+            return distroEntity.ToDto();
         }
 
         public async Task<DistroDTO> CreateDistro(DistroDTO distroDTO)
         {
-            var entity = new Domain.Entities.Distro(
-                imageUrl: distroDTO.ImageUrl,
-                nome: distroDTO.Nome,
-                descricao: distroDTO.Descricao,
-                iso: distroDTO.Iso,
-                categoryId: distroDTO.CategoryId
-            );
+            var entity = distroDTO.ToEntity();
 
             await _distroRepository.AddDistroAsync(entity);
 
-            return _mapper.Map<DistroDTO>(entity);
+            return entity.ToDto();
         }
 
 
@@ -77,7 +68,7 @@ namespace Distro.Application.Services
 
             await _distroRepository.UpdateDistroAsync(distroEntity);
 
-            return _mapper.Map<DistroDTO>(distroEntity);
+            return distroEntity.ToDto();
         }
 
 

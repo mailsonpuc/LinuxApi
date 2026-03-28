@@ -1,6 +1,5 @@
 using System.Text;
 using Distro.Application.Interfaces;
-using Distro.Application.Mappings;
 using Distro.Application.Services;
 using Distro.Domain.Account;
 using Distro.Domain.Interfaces;
@@ -24,7 +23,7 @@ namespace Distro.Infra.IoC
     {
         /// <summary>
         /// Método de extensão que registra os serviços de infraestrutura,
-        /// repositórios, serviços de aplicação, AutoMapper e DbContext.
+        /// repositórios, serviços de aplicação e DbContext.
         /// </summary>
         /// <param name="services">Container de serviços do ASP.NET</param>
         /// <param name="configuration">Configurações da aplicação (appsettings.json)</param>
@@ -76,12 +75,6 @@ namespace Distro.Infra.IoC
             // Services encapsulam regras de negócio e orquestram o domínio
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IDistroService, DistroService>();
-
-            // ===============================
-            // CONFIGURAÇÃO DO AUTOMAPPER
-            // ===============================
-            // Responsável por mapear Entidades <-> DTOs
-            services.AddAutoMapper(typeof(DomainToDTOMappingProfile));
 
             return services;
         }

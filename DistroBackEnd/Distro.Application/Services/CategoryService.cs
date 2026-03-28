@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using AutoMapper;
 using Distro.Application.DTOs;
 using Distro.Application.Interfaces;
+using Distro.Application.Mappings;
 using Distro.Domain.Entities;
 using Distro.Domain.Interfaces;
 
@@ -12,20 +13,16 @@ namespace Distro.Application.Services
     public class CategoryService : ICategoryService
     {
         private readonly ICategoryRepository _categoryRepository;
-        private readonly IMapper _mapper;
 
-        public CategoryService(
-            ICategoryRepository categoryRepository,
-            IMapper mapper)
+        public CategoryService(ICategoryRepository categoryRepository)
         {
             _categoryRepository = categoryRepository;
-            _mapper = mapper;
         }
 
         public async Task<IEnumerable<CategoryDTO>> GetCategories()
         {
             var categoriesEntity = await _categoryRepository.GetAllCategoriesAsync();
-            return _mapper.Map<IEnumerable<CategoryDTO>>(categoriesEntity);
+            return categoriesEntity.ToDto();
         }
 
         public async Task<CategoryDTO> GetCategoryById(Guid? id)
@@ -38,7 +35,7 @@ namespace Distro.Application.Services
             if (categoryEntity == null)
                 return null;
 
-            return _mapper.Map<CategoryDTO>(categoryEntity);
+            return categoryEntity.ToDto();
         }
 
         public async Task<CategoryDTO> CreateCategory(CategoryDTO categoryDto)
@@ -46,11 +43,11 @@ namespace Distro.Application.Services
             if (categoryDto == null)
                 throw new ArgumentNullException(nameof(categoryDto));
 
-            var categoryEntity = _mapper.Map<Category>(categoryDto);
+            var categoryEntity = categoryDto.ToEntity();
 
             await _categoryRepository.AddCategoryAsync(categoryEntity);
 
-            return _mapper.Map<CategoryDTO>(categoryEntity);
+            return categoryEntity.ToDto();
         }
 
         public async Task<CategoryDTO> UpdateCategory(CategoryDTO categoryDto)
@@ -68,7 +65,7 @@ namespace Distro.Application.Services
 
             await _categoryRepository.UpdateCategoryAsync(categoryEntity);
 
-            return _mapper.Map<CategoryDTO>(categoryEntity);
+            return categoryEntity.ToDto();
         }
 
         public async Task<bool> DeleteCategory(Guid? id)
