@@ -1,0 +1,41 @@
+@page "/distro/{Id:int}"
+
+<PageTitle>Distro</PageTitle>
+
+@code {
+    private List<Distro>? distros;
+    private string? errorMessage;
+    private bool isLoading = true;
+
+    
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+            distros = await client.GetFromJsonAsync<List<Distro>>("http://localhost:5130/api/Distro");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+
+    private class DistroModel
+    {
+        public Guid distroId { get; set; }
+        public string? imageUrl { get; set; }
+        public string? nome { get; set; }
+        public string? descricao { get; set; }
+        public string? iso { get; set; }
+        public Guid categoryId { get; set; }
+    }
+
+}

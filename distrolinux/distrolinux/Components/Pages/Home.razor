@@ -1,53 +1,43 @@
 ﻿@page "/"
+@rendermode InteractiveServer
+@using Distrolinux.Models
+
+
+@inject NavigationManager NavigationManager
 
 <PageTitle>Home</PageTitle>
 
 <Header />
 
-
 @if (isLoading)
 {
     <p>Loading...</p>
 }
-
-
 else if (errorMessage != null)
 {
-    <p>Error: @errorMessage</p>
+    <p class="text-danger">Error: @errorMessage</p>
 }
-
-
 else if (distros != null && distros.Any())
 {
-    <div class="container ">
-
+    <div class="container">
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
             @foreach (var distro in distros)
             {
-                <div style="border: 1px solid #ccc; padding: 10px;">
-                    <h3>@distro.nome</h3>
-                    <p>@distro.descricao</p>
-                    <img width="200px" src="@distro.imageUrl" alt="@distro.nome" />
-                    <p>ISO: <a href="@distro.iso" target="_blank">Download</a></p>
+                <div style="border: 1px solid #ccc; padding: 10px; cursor: pointer;" @onclick="() => GoToDetails(distro.DistroId)">
+                    <h3>@distro.Nome</h3>
+                    <p>@distro.Descricao</p>
+                    <img width="200px" src="@distro.ImageUrl" alt="@distro.Nome" />
+                    
                 </div>
             }
         </div>
-
     </div>
-
-
 }
 
-
-
-
-
-
-@code
-{
-    private List<Distro>? distros;
-    private string? errorMessage;
+@code {
+    private List<DistroModel>? distros;
     private bool isLoading = true;
+    private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -55,7 +45,7 @@ else if (distros != null && distros.Any())
         {
             using var client = new HttpClient();
             client.DefaultRequestHeaders.Add("Accept", "application/json");
-            distros = await client.GetFromJsonAsync<List<Distro>>("http://localhost:5130/api/Distro");
+            distros = await client.GetFromJsonAsync<List<DistroModel>>("http://localhost:5130/api/Distro");
         }
         catch (Exception ex)
         {
@@ -67,14 +57,9 @@ else if (distros != null && distros.Any())
         }
     }
 
-
-    private class Distro
+    private void GoToDetails(Guid distroId)
     {
-        public Guid distroId { get; set; }
-        public string? imageUrl { get; set; }
-        public string? nome { get; set; }
-        public string? descricao { get; set; }
-        public string? iso { get; set; }
-        public Guid categoryId { get; set; }
+        NavigationManager.NavigateTo($"/distro/{distroId}");
     }
 }
+
