@@ -1,0 +1,63 @@
+@page "/register"
+@using Distrolinux.Models
+@using System.Net.Http.Json
+@rendermode InteractiveServer
+@inject HttpClient Http
+
+<Header />
+
+
+
+<div class="container">
+    <h3>Registrar</h3>
+    
+    <EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            <InputText id="email" @bind-Value="registerModel.Email" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label for="password">Senha</label>
+            <InputText id="password" @bind-Value="registerModel.Password" type="password" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label for="confirmPassword">Confirmar Senha</label>
+            <InputText id="confirmPassword" @bind-Value="registerModel.ConfirmPassword" type="password"
+                       class="form-control" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Registrar</button>
+    </EditForm>
+</div>
+
+<p>@message</p>
+
+@code {
+    private RegisterModel registerModel = new RegisterModel();
+    private string message = "";
+
+    private async Task HandleRegister()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync("http://localhost:5130/api/Token/register", registerModel);
+            if (response.IsSuccessStatusCode)
+            {
+                message = "Usuário registrado com sucesso!";
+            }
+            else
+            {
+                message = "Erro no registro: " + await response.Content.ReadAsStringAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            message = "Erro: " + ex.Message;
+        }
+    }
+}
