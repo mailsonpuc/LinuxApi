@@ -22,8 +22,13 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseOpenApi();      
-    app.UseSwaggerUi();  
+    app.UseOpenApi();
+    //abrir na raiz /
+    app.UseSwaggerUi(options =>
+    {
+        options.Path = ""; 
+       
+    });
 }
 
 
