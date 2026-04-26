@@ -1,0 +1,172 @@
+@page "/PutByIdDistro"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<h3>Atualizar Distribuição</h3>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <label>Buscar por ID para editar:</label>
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="Digite o ID..." @bind="searchId" />
+            <button class="btn btn-primary" type="button" @onclick="FetchDistro">Buscar</button>
+        </div>
+    </div>
+</div>
+
+<hr />
+
+@if (isLoading)
+{
+    <p><em>Carregando...</em></p>
+}
+else if (distroToEdit != null)
+{
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <label>ID:</label>
+                <input class="form-control" value="@distroToEdit.DistroId" disabled />
+            </div>
+            <div class="form-group mb-3">
+                <label for="Nome">Nome:</label>
+                <input id="Nome" class="form-control" @bind="distroToEdit.Nome" />
+            </div>
+            <div class="form-group mb-3">
+                <label for="Descricao">Descrição:</label>
+                <textarea id="Descricao" class="form-control" @bind="distroToEdit.Descricao"></textarea>
+            </div>
+            <div class="form-group mb-3">
+                <label for="ImageUrl">URL da Imagem:</label>
+                <input id="ImageUrl" class="form-control" @bind="distroToEdit.ImageUrl" />
+            </div>
+            <div class="form-group mb-3">
+                <label for="Iso">ISO:</label>
+                <input id="Iso" class="form-control" @bind="distroToEdit.Iso" />
+            </div>
+            <div class="form-group mb-3">
+                <label for="CategoryId">Categoria ID:</label>
+                <input id="CategoryId" class="form-control" @bind="distroToEdit.CategoryId" />
+            </div>
+            <div class="form-group">
+                <button type="button" class="btn btn-success" @onclick="UpdateDistro">Atualizar</button>
+                <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancelar</button>
+            </div>
+        </div>
+    </div>
+}
+else if (notFound)
+{
+    <div class="alert alert-warning">
+        Nenhuma distribuição encontrada com o ID "@searchId".
+    </div>
+}
+
+@if (statusMessage != null)
+{
+    <div class="alert @statusClass mt-3">
+        @statusMessage
+    </div>
+}
+
+@code {
+    private string? searchId;
+    private DistroDto? distroToEdit;
+    private bool isLoading = false;
+    private bool notFound = false;
+    private string? statusMessage;
+    private string statusClass = "alert-info";
+
+    private async Task FetchDistro()
+    {
+        if (string.IsNullOrWhiteSpace(searchId))
+        {
+            statusMessage = "Por favor, informe um ID.";
+            statusClass = "alert-warning";
+            distroToEdit = null;
+            return;
+        }
+
+        isLoading = true;
+        statusMessage = null;
+        notFound = false;
+        distroToEdit = null;
+
+        try
+        {
+            var response = await Http.GetAsync($"http://localhost:5130/api/Distro/{searchId}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                distroToEdit = await response.Content.ReadFromJsonAsync<DistroDto>();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                notFound = true;
+            }
+            else
+            {
+                statusMessage = $"Erro na busca: {response.StatusCode}";
+                statusClass = "alert-danger";
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Ocorreu um erro: {ex.Message}";
+            statusClass = "alert-danger";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task UpdateDistro()
+    {
+        if (distroToEdit == null || string.IsNullOrWhiteSpace(distroToEdit.Nome))
+        {
+            statusMessage = "O nome não pode estar vazio.";
+            statusClass = "alert-warning";
+            return;
+        }
+
+        try
+        {
+            var response = await Http.PutAsJsonAsync($"http://localhost:5130/api/Distro/{distroToEdit.DistroId}", distroToEdit);
+
+            if (response.IsSuccessStatusCode)
+            {
+                statusMessage = "Distribuição atualizada com sucesso!";
+                statusClass = "alert-success";
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                statusMessage = $"Erro ao atualizar: {response.StatusCode} - {error}";
+                statusClass = "alert-danger";
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Erro: {ex.Message}";
+            statusClass = "alert-danger";
+        }
+    }
+
+    private void Cancel()
+    {
+        distroToEdit = null;
+        searchId = null;
+        statusMessage = null;
+    }
+
+    public class DistroDto
+    {
+        public string? DistroId { get; set; }
+        public string? ImageUrl { get; set; }
+        public string? Nome { get; set; }
+        public string? Descricao { get; set; }
+        public string? Iso { get; set; }
+        public string? CategoryId { get; set; }
+    }
+}

@@ -1,0 +1,145 @@
+@page "/DeleteByIdCategory"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<h3>Excluir Categoria</h3>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <label>Buscar por ID para excluir:</label>
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="Digite o ID..." @bind="searchId" />
+            <button class="btn btn-primary" type="button" @onclick="FetchCategory">Buscar</button>
+        </div>
+    </div>
+</div>
+
+<hr />
+
+@if (isLoading)
+{
+    <p><em>Carregando...</em></p>
+}
+else if (categoryToDelete != null)
+{
+    <div class="alert alert-warning">
+        <h5>Confirmar Exclusão</h5>
+        <p>Tem certeza que deseja excluir a categoria abaixo?</p>
+        <hr />
+        <p><strong>ID:</strong> @categoryToDelete.CategoryId</p>
+        <p><strong>Nome:</strong> @categoryToDelete.Name</p>
+        
+        <div class="mt-3">
+            <button type="button" class="btn btn-danger" @onclick="DeleteCategory">Confirmar Exclusão</button>
+            <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancelar</button>
+        </div>
+    </div>
+}
+else if (notFound)
+{
+    <div class="alert alert-warning">
+        Nenhuma categoria encontrada com o ID "@searchId".
+    </div>
+}
+
+@if (statusMessage != null)
+{
+    <div class="alert @statusClass mt-3">
+        @statusMessage
+    </div>
+}
+
+@code {
+    private string? searchId;
+    private CategoryDto? categoryToDelete;
+    private bool isLoading = false;
+    private bool notFound = false;
+    private string? statusMessage;
+    private string statusClass = "alert-info";
+
+    private async Task FetchCategory()
+    {
+        if (string.IsNullOrWhiteSpace(searchId))
+        {
+            statusMessage = "Por favor, informe um ID.";
+            statusClass = "alert-warning";
+            categoryToDelete = null;
+            return;
+        }
+
+        isLoading = true;
+        statusMessage = null;
+        notFound = false;
+        categoryToDelete = null;
+
+        try
+        {
+            var response = await Http.GetAsync($"http://localhost:5130/api/Category/{searchId}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                categoryToDelete = await response.Content.ReadFromJsonAsync<CategoryDto>();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                notFound = true;
+            }
+            else
+            {
+                statusMessage = $"Erro na busca: {response.StatusCode}";
+                statusClass = "alert-danger";
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Ocorreu um erro: {ex.Message}";
+            statusClass = "alert-danger";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task DeleteCategory()
+    {
+        if (categoryToDelete == null) return;
+
+        try
+        {
+            var response = await Http.DeleteAsync($"http://localhost:5130/api/Category/{categoryToDelete.CategoryId}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                statusMessage = "Categoria excluída com sucesso!";
+                statusClass = "alert-success";
+                categoryToDelete = null;
+                searchId = null;
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                statusMessage = $"Erro ao excluir: {response.StatusCode} - {error}";
+                statusClass = "alert-danger";
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Erro: {ex.Message}";
+            statusClass = "alert-danger";
+        }
+    }
+
+    private void Cancel()
+    {
+        categoryToDelete = null;
+        searchId = null;
+        statusMessage = null;
+    }
+
+    public class CategoryDto
+    {
+        public string? CategoryId { get; set; }
+        public string? Name { get; set; }
+    }
+}

@@ -1,0 +1,99 @@
+@page "/GetByIdCategory"
+@inject HttpClient Http
+
+<h3>Buscar Categoria por ID</h3>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="Digite o ID da categoria..." @bind="searchId" />
+            <button class="btn btn-primary" type="button" @onclick="FetchCategory">Buscar</button>
+        </div>
+    </div>
+</div>
+
+<hr />
+
+@if (isLoading)
+{
+    <p><em>Buscando...</em></p>
+}
+else if (category != null)
+{
+    <div class="card" style="width: 18rem;">
+        <div class="card-body">
+            <h5 class="card-title">Detalhes da Categoria</h5>
+            <p class="card-text"><strong>ID:</strong> @category.CategoryId</p>
+            <p class="card-text"><strong>Nome:</strong> @category.Name</p>
+        </div>
+    </div>
+}
+else if (notFound)
+{
+    <div class="alert alert-warning">
+        Nenhuma categoria encontrada com o ID "@searchId".
+    </div>
+}
+
+@if (errorMessage != null)
+{
+    <div class="alert alert-danger mt-3">
+        @errorMessage
+    </div>
+}
+
+@code {
+    private string? searchId;
+    private CategoryDto? category;
+    private bool isLoading = false;
+    private bool notFound = false;
+    private string? errorMessage;
+
+    private async Task FetchCategory()
+    {
+        if (string.IsNullOrWhiteSpace(searchId))
+        {
+            errorMessage = "Por favor, informe um ID.";
+            category = null;
+            notFound = false;
+            return;
+        }
+
+        isLoading = true;
+        errorMessage = null;
+        notFound = false;
+        category = null;
+
+        try
+        {
+            var response = await Http.GetAsync($"http://localhost:5130/api/Category/{searchId}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                category = await response.Content.ReadFromJsonAsync<CategoryDto>();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                notFound = true;
+            }
+            else
+            {
+                errorMessage = $"Erro na busca: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Ocorreu um erro: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    public class CategoryDto
+    {
+        public string? CategoryId { get; set; }
+        public string? Name { get; set; }
+    }
+}

@@ -1,0 +1,95 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">DistroFrontEnd</a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+    <nav class="nav flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+
+        
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="Getcategory">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> GetCategory
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="Postcategory">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> PostCategory
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="GetByIdCategory">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> GetByIdCategory
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="PutByIdCategory">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> PutByIdCategory
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="DeleteByIdCategory">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> DeleteByIdCategory
+            </NavLink>
+        </div>
+
+
+
+        <hr>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="Getdistros">
+                <span class="bi bi-list-nav-menu" aria-hidden="true"></span> GetDistros
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="Postdistro">
+                <span class="bi bi-plus-square-nav-menu" aria-hidden="true"></span> PostDistro
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="GetByIdDistro">
+                <span class="bi bi-search-nav-menu" aria-hidden="true"></span> GetByIdDistro
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="PutByIdDistro">
+                <span class="bi bi-pencil-nav-menu" aria-hidden="true"></span> PutByIdDistro
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="DeleteByIdDistro">
+                <span class="bi bi-trash-nav-menu" aria-hidden="true"></span> DeleteByIdDistro
+            </NavLink>
+        </div>
+
+    </nav>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}

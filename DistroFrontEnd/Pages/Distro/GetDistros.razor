@@ -1,0 +1,84 @@
+@page "/Getdistros"
+@inject HttpClient Http
+
+
+<h3>Distros</h3>
+
+@if (distros == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!distros.Any())
+{
+    <p>Nenhuma distribuição encontrada.</p>
+}
+else
+{
+    <div class="container">
+        <div class="row">
+
+            @foreach (var distro in distros)
+            {
+                <div class="col-md-4 col-sm-6 mb-4">
+                    <div class="card h-100 shadow-sm">
+
+                        <img src="@distro.ImageUrl"
+                             class="card-img-top"
+                             style="height:180px; object-fit:cover;"
+                             alt="@distro.Nome" />
+
+                        <div class="card-body">
+                            <h5 class="card-title">@distro.Nome</h5>
+
+                            <p class="card-text">
+                                @distro.Descricao
+                            </p>
+
+                            <small class="text-muted">
+                                ISO: @distro.Iso
+                            </small>
+
+                            <br />
+
+                            <small class="text-muted">
+                                Category: @distro.CategoryId
+                            </small>
+                        </div>
+
+                        <div class="card-footer">
+                            <small class="text-muted">
+                                ID: @distro.DistroId
+                            </small>
+                        </div>
+
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+}
+
+
+
+
+@code {
+    private DistroDto[]? distros;
+
+    protected override async Task OnInitializedAsync()
+    {
+        distros = await Http.GetFromJsonAsync<DistroDto[]>("http://localhost:5130/api/Distro");
+    }
+
+
+    public class DistroDto
+    {
+        public string? DistroId { get; set; }
+        public string? ImageUrl { get; set; }
+        public string? Nome { get; set; }
+        public string? Descricao { get; set; }
+        public string? Iso { get; set; }
+        public string? CategoryId { get; set; }
+
+    }
+}

@@ -1,0 +1,56 @@
+@page "/Getcategory"
+@inject HttpClient Http
+
+
+
+@if (categories == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!categories.Any())
+{
+    <p>Nenhuma categoria encontrada.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>CategoryId</th>
+                <th>Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var category in categories)
+            {
+                <tr>
+                    <td>@category.CategoryId</td>
+                    <td>@category.Name</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+
+
+
+@code {
+    private CategoryDto[]? categories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await Http.GetFromJsonAsync<CategoryDto[]>("http://localhost:5130/api/Category");
+    }
+
+
+    public class CategoryDto
+    {
+        public string? CategoryId { get; set; }
+
+        public string? Name { get; set; }
+
+
+    }
+}

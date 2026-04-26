@@ -15,27 +15,38 @@ builder.Services.AddJwtConfiguration(builder.Configuration);
 builder.Services.AddInfrastructureSwagger(builder.Configuration);
 
 
+//  CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        policy => policy
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader());
+});
 
 
-// NSwag.AspNetCore Swagger UI
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
     app.UseOpenApi();
-    //abrir na raiz /
+
     app.UseSwaggerUi(options =>
     {
-        options.Path = ""; 
-       
+        options.Path = "";
     });
 }
 
 
-
 app.UseHttpsRedirection();
+
+
+app.UseCors("AllowAll");
+
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();

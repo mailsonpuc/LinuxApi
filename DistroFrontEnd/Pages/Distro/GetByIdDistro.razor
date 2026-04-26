@@ -1,0 +1,108 @@
+@page "/GetByIdDistro"
+@inject HttpClient Http
+
+<h3>Buscar Distribuição por ID</h3>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="Digite o ID da distro..." @bind="searchId" />
+            <button class="btn btn-primary" type="button" @onclick="FetchDistro">Buscar</button>
+        </div>
+    </div>
+</div>
+
+<hr />
+
+@if (isLoading)
+{
+    <p><em>Buscando...</em></p>
+}
+else if (distro != null)
+{
+    <div class="card shadow-sm" style="max-width: 500px;">
+        <img src="@distro.ImageUrl" class="card-img-top" style="height:250px; object-fit:cover;" alt="@distro.Nome" />
+        <div class="card-body">
+            <h5 class="card-title">@distro.Nome</h5>
+            <p class="card-text">@distro.Descricao</p>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><strong>ID:</strong> @distro.DistroId</li>
+                <li class="list-group-item"><strong>ISO:</strong> @distro.Iso</li>
+                <li class="list-group-item"><strong>Categoria ID:</strong> @distro.CategoryId</li>
+            </ul>
+        </div>
+    </div>
+}
+else if (notFound)
+{
+    <div class="alert alert-warning">
+        Nenhuma distribuição encontrada com o ID "@searchId".
+    </div>
+}
+
+@if (errorMessage != null)
+{
+    <div class="alert alert-danger mt-3">
+        @errorMessage
+    </div>
+}
+
+@code {
+    private string? searchId;
+    private DistroDto? distro;
+    private bool isLoading = false;
+    private bool notFound = false;
+    private string? errorMessage;
+
+    private async Task FetchDistro()
+    {
+        if (string.IsNullOrWhiteSpace(searchId))
+        {
+            errorMessage = "Por favor, informe um ID.";
+            distro = null;
+            notFound = false;
+            return;
+        }
+
+        isLoading = true;
+        errorMessage = null;
+        notFound = false;
+        distro = null;
+
+        try
+        {
+            var response = await Http.GetAsync($"http://localhost:5130/api/Distro/{searchId}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                distro = await response.Content.ReadFromJsonAsync<DistroDto>();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                notFound = true;
+            }
+            else
+            {
+                errorMessage = $"Erro na busca: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Ocorreu um erro: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    public class DistroDto
+    {
+        public string? DistroId { get; set; }
+        public string? ImageUrl { get; set; }
+        public string? Nome { get; set; }
+        public string? Descricao { get; set; }
+        public string? Iso { get; set; }
+        public string? CategoryId { get; set; }
+    }
+}
