@@ -36,6 +36,8 @@ namespace Distro.API.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetAll()
         {
+            //throw new NotImplementedException("Este método ainda não foi implementado.");
+            
             var categories = await _categoryService.GetCategories();
             return Ok(categories);
         }

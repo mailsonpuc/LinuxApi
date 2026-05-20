@@ -1,3 +1,4 @@
+using Distro.API.Middleware;
 using Distro.Infra.IoC;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,6 +28,8 @@ builder.Services.AddCors(options =>
 
 
 var app = builder.Build();
+
+app.UseGlobalExceptionMiddleware();
 
 if (app.Environment.IsDevelopment())
 {
