@@ -36,6 +36,11 @@ public class DistroRepository : IDistroRepository
         return await _context.Distros.AsNoTracking().ToListAsync();
     }
 
+    public IQueryable<Domain.Entities.Distro> GetAllDistrosAsQueryable()
+    {
+        return _context.Distros.AsNoTracking().AsQueryable();
+    }
+
     public async Task<Domain.Entities.Distro?> GetDistroByIdAsync(Guid distroId)
     {
         return await _context.Distros.FindAsync(distroId);

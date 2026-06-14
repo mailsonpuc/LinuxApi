@@ -40,6 +40,11 @@ namespace Distro.Infra.Data.Repositories
             return await _context.Categories.ToListAsync();
         }
 
+        public IQueryable<Category> GetAllCategoriesAsQueryable()
+        {
+            return _context.Categories.AsQueryable();
+        }
+
 
 
         public async Task<Category> GetCategoryByIdAsync(Guid categoryId)

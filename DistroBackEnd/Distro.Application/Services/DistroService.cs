@@ -7,6 +7,8 @@ using Distro.Application.Interfaces;
 using Distro.Application.Mappings;
 using Distro.Domain.Entities;
 using Distro.Domain.Interfaces;
+using Distro.Domain.Pagination;
+using DistroEntity = Distro.Domain.Entities.Distro;
 
 namespace Distro.Application.Services
 {
@@ -23,6 +25,22 @@ namespace Distro.Application.Services
         {
             var distrosEntity = await _distroRepository.GetAllDistrosAsync();
             return distrosEntity.ToDto();
+        }
+
+        public async Task<PagedList<DistroDTO>> GetDistrosPaged(int pageNumber = 1, int pageSize = 10)
+        {
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageSize < 1) pageSize = 10;
+
+            var query = _distroRepository.GetAllDistrosAsQueryable();
+            var pagedList = await PagedList<DistroEntity>.ToPagedListAsync(query, pageNumber, pageSize);
+            
+            return new PagedList<DistroDTO>(
+                pagedList.Select(d => d.ToDto()).ToList(),
+                pagedList.TotalCount,
+                pagedList.CurrentPage,
+                pagedList.PageSize
+            );
         }
 
         public async Task<DistroDTO> GetDistroById(Guid? id)

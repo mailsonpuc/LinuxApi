@@ -7,6 +7,7 @@ using Distro.Application.Interfaces;
 using Distro.Application.Mappings;
 using Distro.Domain.Entities;
 using Distro.Domain.Interfaces;
+using Distro.Domain.Pagination;
 
 namespace Distro.Application.Services
 {
@@ -23,6 +24,22 @@ namespace Distro.Application.Services
         {
             var categoriesEntity = await _categoryRepository.GetAllCategoriesAsync();
             return categoriesEntity.ToDto();
+        }
+
+        public async Task<PagedList<CategoryDTO>> GetCategoriesPaged(int pageNumber = 1, int pageSize = 10)
+        {
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageSize < 1) pageSize = 10;
+
+            var query = _categoryRepository.GetAllCategoriesAsQueryable();
+            var pagedList = await PagedList<Category>.ToPagedListAsync(query, pageNumber, pageSize);
+            
+            return new PagedList<CategoryDTO>(
+                pagedList.Select(c => c.ToDto()).ToList(),
+                pagedList.TotalCount,
+                pagedList.CurrentPage,
+                pagedList.PageSize
+            );
         }
 
         public async Task<CategoryDTO> GetCategoryById(Guid? id)

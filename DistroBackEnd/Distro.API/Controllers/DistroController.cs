@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Distro.Application.DTOs;
 using Distro.Application.Interfaces;
+using Distro.Infra.IoC.Pagination;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
+using Newtonsoft.Json;
 
 
 namespace Distro.API.Controllers
@@ -24,12 +27,44 @@ namespace Distro.API.Controllers
             _distroService = distroService;
         }
 
-        // GET: api/Distro
+        /// <summary>
+        /// Obtém todas as distribuições.
+        /// </summary>
+        /// <returns>Lista de todas as distribuições</returns>
+        /// <response code="200">Retorna a lista de todas as distribuições</response>
         [HttpGet]
-        [ResponseCache(VaryByHeader = "User-Agent", Location = ResponseCacheLocation.Any, Duration = 60)]
         public async Task<ActionResult<IEnumerable<DistroDTO>>> GetAll()
         {
             var distros = await _distroService.GetDistros();
+            return Ok(distros);
+        }
+
+        /// <summary>
+        /// Obtém a lista de distribuições com suporte a paginação usando parâmetros de query avançados.
+        /// Retorna informações de paginação no header X-Pagination.
+        /// </summary>
+        /// <param name="distroParameters">Parâmetros de paginação e filtro.</param>
+        /// <returns>Uma coleção de objetos DistroDTO com metadados de paginação.</returns>
+        /// <response code="200">Retorna a lista de distribuições com metadados.</response>
+        /// <response code="401">Usuário não autenticado.</response>
+        [HttpGet("paginacao")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<IEnumerable<DistroDTO>>> Paginacao([FromQuery] DistroParameters distroParameters)
+        {
+            var distros = await _distroService.GetDistrosPaged(distroParameters.PageNumber, distroParameters.PageSize);
+
+            var metadata = new
+            {
+                distros.TotalCount,
+                distros.PageSize,
+                distros.CurrentPage,
+                distros.TotalPages,
+                distros.HasNextPage,
+                distros.HasPreviousPage
+            };
+            
+            Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(metadata));
             return Ok(distros);
         }
 

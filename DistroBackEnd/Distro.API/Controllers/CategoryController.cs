@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Distro.Application.DTOs;
 using Distro.Application.Interfaces;
+using Distro.Infra.IoC.Pagination;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
+using Newtonsoft.Json;
 
 namespace Distro.API.Controllers
 {
@@ -38,11 +40,42 @@ namespace Distro.API.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetAll()
         {
-            //throw new NotImplementedException("Este método ainda não foi implementado.");
-            
             var categories = await _categoryService.GetCategories();
             return Ok(categories);
         }
+
+
+
+        /// <summary>
+        /// Obtém a lista de categorias com suporte a paginação usando parâmetros de query avançados.
+        /// Retorna informações de paginação no header X-Pagination.
+        /// </summary>
+        /// <param name="categoriasParameters">Parâmetros de paginação e filtro.</param>
+        /// <returns>Uma coleção de objetos CategoryDTO com metadados de paginação.</returns>
+        /// <response code="200">Retorna a lista de categorias com metadados.</response>
+        /// <response code="401">Usuário não autenticado.</response>
+        [HttpGet("paginacao")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<IEnumerable<CategoryDTO>>> Paginacao([FromQuery] CategoriasParameters categoriasParameters)
+        {
+            var categories = await _categoryService.GetCategoriesPaged(categoriasParameters.PageNumber, categoriasParameters.PageSize);
+
+            var metadata = new
+            {
+                categories.TotalCount,
+                categories.PageSize,
+                categories.CurrentPage,
+                categories.TotalPages,
+                categories.HasNextPage,
+                categories.HasPreviousPage
+            };
+            
+            Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(metadata));
+            return Ok(categories);
+        }
+
+
 
         /// <summary>
         /// Obtém uma categoria específica através do seu identificador único (GUID).
