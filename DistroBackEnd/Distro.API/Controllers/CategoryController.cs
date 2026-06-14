@@ -6,6 +6,7 @@ using Distro.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Distro.API.Controllers
 {
@@ -16,6 +17,7 @@ namespace Distro.API.Controllers
     //[Authorize]
     [Produces("application/json")]
     [Route("api/[controller]")]
+    [EnableRateLimiting("fixedwindow")]
     public class CategoryController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
@@ -65,13 +67,14 @@ namespace Distro.API.Controllers
         }
 
         /// <summary>
-        /// Cria uma nova categoria no sistema.
+        /// Cria uma nova categoria no sistema.  Requer autenticação.
         /// </summary>
         /// <param name="categoryDto">Objeto contendo os dados da nova categoria.</param>
         /// <returns>A categoria recém-criada.</returns>
         /// <response code="201">Categoria criada com sucesso.</response>
         /// <response code="400">Dados fornecidos são inválidos.</response>
         /// <response code="401">Usuário não autenticado.</response>
+        [Authorize]
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -91,7 +94,7 @@ namespace Distro.API.Controllers
         }
 
         /// <summary>
-        /// Atualiza os dados de uma categoria existente.
+        /// Atualiza os dados de uma categoria existente. Requer autenticação.
         /// </summary>
         /// <param name="id">Identificador da categoria a ser atualizada.</param>
         /// <param name="categoryDto">Objeto com os novos dados da categoria.</param>
@@ -100,6 +103,7 @@ namespace Distro.API.Controllers
         /// <response code="400">Inconsistência entre o ID da URL e o ID do objeto.</response>
         /// <response code="404">Categoria não encontrada para atualização.</response>
         /// <response code="401">Usuário não autenticado.</response>
+        [Authorize]
         [HttpPut("{id:guid}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -119,13 +123,14 @@ namespace Distro.API.Controllers
         }
 
         /// <summary>
-        /// Remove uma categoria do sistema.
+        /// Remove uma categoria do sistema. Requer autenticação.
         /// </summary>
         /// <param name="id">Identificador da categoria a ser excluída.</param>
         /// <returns>Resposta sem conteúdo em caso de sucesso.</returns>
         /// <response code="204">Categoria removida com sucesso.</response>
         /// <response code="404">Categoria não encontrada.</response>
         /// <response code="401">Usuário não autenticado.</response>
+        [Authorize]
         [HttpDelete("{id:guid}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

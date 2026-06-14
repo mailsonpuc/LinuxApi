@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Distro.Domain.Account;
 using Microsoft.AspNetCore.Identity;
@@ -24,22 +25,31 @@ namespace Distro.Infra.Data.Identity
         }
 
 
-
-        public async Task<bool> RegisterUser(string email, string password)
+        public async Task<(bool Success, string? ErrorMessage)> RegisterUser(string email, string password)
         {
+            // Verifica se já existe um usuário com o e-mail
+            var existing = await _userManager.FindByEmailAsync(email);
+            if (existing != null)
+            {
+                return (false, "e-mail ja registrado");
+            }
+
             var AppUser = new ApplicationUser
             {
                 UserName = email,
                 Email = email
             };
+
             var result = await _userManager.CreateAsync(AppUser, password);
 
             if (result.Succeeded)
             {
                 await _signInManager.SignInAsync(AppUser, isPersistent: false);
+                return (true, null);
             }
 
-            return result.Succeeded;
+            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+            return (false, errors);
         }
 
 

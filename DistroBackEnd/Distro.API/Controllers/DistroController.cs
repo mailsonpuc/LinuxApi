@@ -5,6 +5,7 @@ using Distro.Application.DTOs;
 using Distro.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 
 
 namespace Distro.API.Controllers
@@ -13,6 +14,7 @@ namespace Distro.API.Controllers
     //[Authorize]
     [Produces("application/json")]
     [Route("api/[controller]")]
+    [EnableRateLimiting("fixedwindow")]
     public class DistroController : ControllerBase
     {
         private readonly IDistroService _distroService;
@@ -43,6 +45,12 @@ namespace Distro.API.Controllers
             return Ok(distro);
         }
 
+
+        /// <summary>
+        ///   Requer autenticação.
+        /// </summary>
+        /// <response code="401">Usuário não autenticado.</response>
+
         // POST: api/Distro
         [HttpPost]
         public async Task<ActionResult<DistroDTO>> Create([FromBody] DistroDTO distroDto)
@@ -59,6 +67,13 @@ namespace Distro.API.Controllers
             );
         }
 
+
+        /// <summary>
+        ///   Requer autenticação.
+        /// </summary>
+        /// <response code="401">Usuário não autenticado.</response>
+
+
         // PUT: api/Distro/{id}
         [HttpPut("{id:guid}")]
         public async Task<ActionResult<DistroDTO>> Update(Guid id, [FromBody] DistroDTO distroDto)
@@ -73,6 +88,12 @@ namespace Distro.API.Controllers
 
             return Ok(updatedDistro);
         }
+
+
+        /// <summary>
+        ///   Requer autenticação.
+        /// </summary>
+        /// <response code="401">Usuário não autenticado.</response>
 
         // DELETE: api/Distro/{id}
         [HttpDelete("{id:guid}")]

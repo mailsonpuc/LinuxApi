@@ -1,6 +1,7 @@
 using Distro.API.Models;
 using Distro.Domain.Account;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -10,6 +11,7 @@ namespace Distro.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [EnableRateLimiting("fixedwindow")]
     public class TokenController : ControllerBase
     {
         private readonly IAuthenticate _authenticate;
@@ -32,13 +34,18 @@ namespace Distro.API.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await _authenticate.RegisterUser(
+            var (success, errorMessage) = await _authenticate.RegisterUser(
                 model.Email!,
                 model.Password!
             );
 
-            if (!result)
-                return BadRequest("Erro ao registrar usuário");
+            if (!success)
+            {
+                if (!string.IsNullOrEmpty(errorMessage) && errorMessage.Contains("e-mail ja registrado"))
+                    return BadRequest("e-mail ja registrado");
+
+                return BadRequest(errorMessage ?? "Erro ao registrar usuário");
+            }
 
             return Ok("Usuário registrado com sucesso");
         }

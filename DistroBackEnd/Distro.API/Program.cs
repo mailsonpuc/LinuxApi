@@ -1,5 +1,6 @@
 using Distro.API.Middleware;
 using Distro.Infra.IoC;
+using Microsoft.AspNetCore.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,15 +17,12 @@ builder.Services.AddJwtConfiguration(builder.Configuration);
 builder.Services.AddInfrastructureSwagger(builder.Configuration);
 
 
+// Rate Limiter
+builder.Services.AddInfrastructureRateLimiter(builder.Configuration);
+
+
 //  CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll",
-        policy => policy
-            .AllowAnyOrigin()
-            .AllowAnyMethod()
-            .AllowAnyHeader());
-});
+builder.Services.AddInfrastructureCors(builder.Configuration);
 
 
 var app = builder.Build();
@@ -46,6 +44,8 @@ app.UseHttpsRedirection();
 
 
 app.UseCors("AllowAll");
+
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();
