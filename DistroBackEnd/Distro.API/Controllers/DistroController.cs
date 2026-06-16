@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using System.Linq;
 using Distro.API.DTOs;
 using Distro.Application.DTOs;
 using Distro.Application.Interfaces;
@@ -71,6 +72,29 @@ namespace Distro.API.Controllers
             };
             
             Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(metadata));
+            return Ok(distros);
+        }
+
+
+
+
+
+        /// <summary>
+        /// Pesquisa distribuições com base em critérios.
+        /// </summary>
+        
+        // GET: api/Distro/search?nome=ubuntu
+        [HttpGet("search")]
+        public async Task<ActionResult<IEnumerable<DistroDTO>>> Search([FromQuery] string nome)
+        {
+            if (string.IsNullOrWhiteSpace(nome))
+                return BadRequest("Parâmetro 'nome' é obrigatório para a busca.");
+
+            var distros = await _distroService.FindDistrosByName(nome);
+
+            if (distros == null || !distros.Any())
+                return NotFound("Nenhuma distro encontrada com esse critério.");
+
             return Ok(distros);
         }
 

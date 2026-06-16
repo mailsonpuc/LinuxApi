@@ -14,4 +14,5 @@ public interface IDistroRepository
     Task AddDistroAsync(Entities.Distro distro);
     Task UpdateDistroAsync(Entities.Distro distro);
     Task DeleteDistroAsync(Guid distroId);
+    Task<IEnumerable<Entities.Distro>> FindDistrosByNameAsync(string nome);
 }

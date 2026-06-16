@@ -56,6 +56,12 @@ namespace Distro.Application.Services
             return distroEntity.ToDto();
         }
 
+        public async Task<IEnumerable<DistroDTO>> FindDistrosByName(string nome)
+        {
+            var distros = await _distroRepository.FindDistrosByNameAsync(nome);
+            return distros.ToDto();
+        }
+
         public async Task<DistroDTO> CreateDistro(DistroDTO distroDTO)
         {
             var entity = distroDTO.ToEntity();

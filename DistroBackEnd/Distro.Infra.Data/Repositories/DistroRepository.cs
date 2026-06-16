@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Distro.Domain.Interfaces;
 using Distro.Infra.Data.Context;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace Distro.Infra.Data.Repositories;
 
@@ -57,5 +59,17 @@ public class DistroRepository : IDistroRepository
     {
         _context.Distros.Update(distro);
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<IEnumerable<Domain.Entities.Distro>> FindDistrosByNameAsync(string nome)
+    {
+        if (string.IsNullOrWhiteSpace(nome))
+            return Enumerable.Empty<Domain.Entities.Distro>();
+
+        var pattern = $"%{nome}%";
+        return await _context.Distros
+            .AsNoTracking()
+            .Where(d => EF.Functions.Like(d.Nome, pattern))
+            .ToListAsync();
     }
 }
