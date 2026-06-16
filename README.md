@@ -2,9 +2,14 @@
 
 API para gerenciamento de distribuições Linux (Distro). Projeto FullStack — neste repositório está a API em .NET (C#) responsável por categorias e distros, autenticação via JWT, persistência com Entity Framework Core e Identity, e documentação automática via NSwag/Swagger.
 
-> Descrição do repositório: API PARA DISTROS LINUX, projeto fullStack.
+
+## Diagrama
+<img src="DistroBackEnd/Distro.API/wwwroot/doc/diagrama1.png">
+
 
 ---
+
+
 
 ## Sumário
 
@@ -148,12 +153,17 @@ Após o login, a API retorna um objeto `UserToken` com:
 - Token (string JWT)
 - Expiration (DateTime)
 
-Use esse token no header Authorization para acessar endpoints protegidos:
+Use esse token no cabeçalho Authorization para acessar endpoints protegidos:
 
 Header:
 ```
 Authorization: Bearer <token>
 ```
+
+### Validação de registro
+
+- O endpoint de registro verifica se o e-mail já está cadastrado.
+- Quando o e-mail já existe, retorna `400 BadRequest` com o texto `e-mail ja registrado`.
 
 ---
 
@@ -161,37 +171,47 @@ Authorization: Bearer <token>
 
 - TokenController (sem autenticação necessária):
   - POST /api/token/register
-    - Request: RegisterModels { Email, Password }
-    - Response: 200 OK (mensagem) ou 400 BadRequest
+    - Request: RegisterModels { Email, Password, ConfirmPassword }
+    - Retorna 200 OK com mensagem de sucesso ou 400 BadRequest com erro
   - POST /api/token/login
     - Request: LoginModels { Email, Password }
-    - Response: 200 OK => UserToken { Token, Expiration } ou 401 Unauthorized
+    - Retorna 200 OK => UserToken { Token, Expiration } ou 401 Unauthorized
 
-- CategoryController (protegido, exige Bearer token):
+- CategoryController:
   - GET /api/category
-    - Retorna lista de CategoryDTO
+    - Retorna lista de categorias (paginada)
+    - Parâmetros opcionais: pageNumber (padrão 1), pageSize (padrão 10)
   - GET /api/category/{id}
-    - Retorna CategoryDTO por id
+    - Retorna categoria por ID
   - POST /api/category
-    - Cria nova categoria (CategoryDTO)
+    - Requer autenticação
+    - Cria nova categoria
   - PUT /api/category/{id}
+    - Requer autenticação
     - Atualiza categoria
   - DELETE /api/category/{id}
+    - Requer autenticação
     - Remove categoria
 
-- DistroController (protegido, exige Bearer token):
+- DistroController:
   - GET /api/distro
-    - Retorna lista de DistroDTO
+    - Retorna lista de distros (paginada)
+    - Parâmetros opcionais: pageNumber (padrão 1), pageSize (padrão 10)
   - GET /api/distro/{id}
-    - Retorna DistroDTO por id
+    - Retorna distro por ID
   - POST /api/distro
-    - Cria distro (DistroDTO)
+    - Cria nova distro
   - PUT /api/distro/{id}
     - Atualiza distro
   - DELETE /api/distro/{id}
     - Remove distro
 
-Observação: os DTOs (CategoryDTO, DistroDTO) estão no projeto Distro.Application.DTOs — ver a pasta para campos exatos (por exemplo: Distro tem DistroId, Nome, Descricao, Iso, ImageUrl, CategoryId, etc.)
+### DTOs principais
+
+- CategoryDTO: `CategoryId`, `Name`
+- DistroDTO: `DistroId`, `ImageUrl`, `Nome`, `Descricao`, `Iso`, `CategoryId`
+
+Os DTOs estão no projeto `Distro.Application.DTOs`.
 
 ---
 
@@ -228,6 +248,19 @@ curl -X GET "https://localhost:5001/api/category" \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
 
+Obter categorias com paginação (página 2, 15 itens por página):
+
+```bash
+curl -X GET "https://localhost:5001/api/category?pageNumber=2&pageSize=15" \
+  -H "Authorization: Bearer <token>"
+```
+
+Obter distros com paginação (página 1, 20 itens):
+
+```bash
+curl -X GET "https://localhost:5001/api/distro?pageNumber=1&pageSize=20"
+```
+
 Criar categoria (exemplo):
 
 ```bash
@@ -253,6 +286,43 @@ curl -X POST "https://localhost:5001/api/distro" \
 ```
 
 (Ajuste os campos conforme os DTOs presentes no projeto.)
+
+---
+
+## Paginação
+
+Os endpoints `GET /api/category` e `GET /api/distro` suportam paginação por parâmetros de query string:
+
+- `pageNumber` (padrão: 1) — número da página
+- `pageSize` (padrão: 10) — quantidade de itens por página
+
+Exemplo de requisição:
+
+```
+GET /api/category?pageNumber=2&pageSize=15
+```
+
+Resposta:
+
+O retorno é um objeto `PagedList<T>` com os seguintes campos:
+
+- `items` — array com os elementos da página
+- `currentPage` — página atual
+- `totalPages` — total de páginas
+- `pageSize` — quantidade de itens por página
+- `totalCount` — total de elementos
+- `hasPreviousPage` — se existe página anterior
+- `hasNextPage` — se existe próxima página
+
+---
+
+## Regras adicionais
+
+- Rate limiting está ativado por controller com a política `fixedwindow`.
+- A política atual permite 100  requisição a cada 5 segundos
+- Requisições acima do limite retornam `429 Too Many Requests`.
+- CORS está configurado com a política `AllowAll`.
+- Registro de usuário com e-mail duplicado retorna `400 BadRequest` e a mensagem `e-mail ja registrado`.
 
 ---
 
