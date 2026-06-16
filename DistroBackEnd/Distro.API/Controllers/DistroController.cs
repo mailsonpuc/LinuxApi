@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
+using Distro.API.DTOs;
 using Distro.Application.DTOs;
 using Distro.Application.Interfaces;
 using Distro.Infra.IoC.Pagination;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -21,10 +24,13 @@ namespace Distro.API.Controllers
     public class DistroController : ControllerBase
     {
         private readonly IDistroService _distroService;
+        private readonly IWebHostEnvironment _environment;
+        private const long MaxImageFileSizeBytes = 1 * 1024 * 1024; // permitido apenas 1 MB da imagem
 
-        public DistroController(IDistroService distroService)
+        public DistroController(IDistroService distroService, IWebHostEnvironment environment)
         {
             _distroService = distroService;
+            _environment = environment;
         }
 
         /// <summary>
@@ -88,12 +94,50 @@ namespace Distro.API.Controllers
 
         // POST: api/Distro
         [HttpPost]
-        public async Task<ActionResult<DistroDTO>> Create([FromBody] DistroDTO distroDto)
+        public async Task<ActionResult<DistroDTO>> Create([FromForm] DistroCreateDTO distroDto)
         {
             if (distroDto == null)
                 return BadRequest("Dados inválidos.");
 
-            var createdDistro = await _distroService.CreateDistro(distroDto);
+            if (distroDto.ImageFile == null || distroDto.ImageFile.Length == 0)
+                return BadRequest("Arquivo de imagem é obrigatório.");
+
+            if (distroDto.ImageFile.Length > MaxImageFileSizeBytes)
+                return BadRequest("O arquivo de imagem deve ter no máximo 1 MB.");
+
+            var webRoot = _environment.WebRootPath;
+            if (string.IsNullOrWhiteSpace(webRoot))
+            {
+                webRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            }
+
+            var imagesFolder = Path.Combine(webRoot, "images");
+            if (!Directory.Exists(imagesFolder))
+            {
+                Directory.CreateDirectory(imagesFolder);
+            }
+
+            var extension = Path.GetExtension(distroDto.ImageFile.FileName);
+            var fileName = $"{Guid.NewGuid()}{extension}";
+            var filePath = Path.Combine(imagesFolder, fileName);
+
+            await using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                await distroDto.ImageFile.CopyToAsync(fileStream);
+            }
+
+            var imageUrl = $"/images/{fileName}";
+
+            var createDto = new DistroDTO
+            {
+                ImageUrl = imageUrl,
+                Nome = distroDto.Nome,
+                Descricao = distroDto.Descricao,
+                Iso = distroDto.Iso,
+                CategoryId = distroDto.CategoryId
+            };
+
+            var createdDistro = await _distroService.CreateDistro(createDto);
 
             return CreatedAtAction(
                 nameof(GetById),
