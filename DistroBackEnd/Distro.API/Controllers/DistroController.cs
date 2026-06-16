@@ -88,11 +88,12 @@ namespace Distro.API.Controllers
 
 
         /// <summary>
-        ///   Requer autenticação.
+        ///   Requer autenticação. Extensões da imagem aceitas apenas; .jpg, .jpeg, .png, .webp - maxima 1 MB.
         /// </summary>
         /// <response code="401">Usuário não autenticado.</response>
 
         // POST: api/Distro
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<DistroDTO>> Create([FromForm] DistroCreateDTO distroDto)
         {
@@ -104,6 +105,13 @@ namespace Distro.API.Controllers
 
             if (distroDto.ImageFile.Length > MaxImageFileSizeBytes)
                 return BadRequest("O arquivo de imagem deve ter no máximo 1 MB.");
+
+            // 1. Validar extensão
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+            var extension = Path.GetExtension(distroDto.ImageFile.FileName).ToLower();
+            
+            if (string.IsNullOrEmpty(extension) || !Array.Exists(allowedExtensions, ext => ext == extension))
+                return BadRequest("Formato de imagem não permitido. Extensões aceitas: .jpg, .jpeg, .png, .webp");
 
             var webRoot = _environment.WebRootPath;
             if (string.IsNullOrWhiteSpace(webRoot))
@@ -117,7 +125,6 @@ namespace Distro.API.Controllers
                 Directory.CreateDirectory(imagesFolder);
             }
 
-            var extension = Path.GetExtension(distroDto.ImageFile.FileName);
             var fileName = $"{Guid.NewGuid()}{extension}";
             var filePath = Path.Combine(imagesFolder, fileName);
 
@@ -154,6 +161,7 @@ namespace Distro.API.Controllers
 
 
         // PUT: api/Distro/{id}
+        [Authorize]
         [HttpPut("{id:guid}")]
         public async Task<ActionResult<DistroDTO>> Update(Guid id, [FromBody] DistroDTO distroDto)
         {
@@ -175,6 +183,7 @@ namespace Distro.API.Controllers
         /// <response code="401">Usuário não autenticado.</response>
 
         // DELETE: api/Distro/{id}
+        [Authorize]
         [HttpDelete("{id:guid}")]
         public async Task<ActionResult> Delete(Guid id)
         {
