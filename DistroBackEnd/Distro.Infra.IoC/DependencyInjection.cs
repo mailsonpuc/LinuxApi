@@ -76,6 +76,11 @@ namespace Distro.Infra.IoC
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IDistroService, DistroService>();
 
+            // ===============================
+            // REGISTRO DO SERVIÇO DE IA (Ollama)
+            // ===============================
+            services.AddHttpClient<IAIService, OllamaService>();
+
             return services;
         }
     }

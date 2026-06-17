@@ -22,6 +22,13 @@ namespace Distro.Infra.IoC
                     options.QueueLimit = 0;
                 });
 
+                rateLimiterOptions.AddFixedWindowLimiter(policyName: "generate", options =>
+                {
+                    options.PermitLimit = 3; // apenas 3 requests permitidos a cada 10 minutos
+                    options.Window = TimeSpan.FromMinutes(10);
+                    options.QueueLimit = 0;
+                });
+
                 rateLimiterOptions.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
             });
 

@@ -22,6 +22,7 @@ API para gerenciamento de distribuições Linux (Distro). Projeto FullStack — 
 - Executando a API
 - Autenticação (JWT)
 - Endpoints (resumo)
+- Funcionalidade de IA / Ollama
 - Exemplos de uso (curl)
 - Swagger / Documentação interativa
 - Contribuição
@@ -37,6 +38,7 @@ Esta API expõe operações CRUD para:
 - Distribuições (Distro)
 
 Além disso, fornece endpoints de autenticação (registro, login) com ASP.NET Identity e emissão de tokens JWT. Alguns endpoints requerem autenticação (atributo [Authorize]).
+- Endpoints de geração de IA com integração Ollama para perguntas sobre Linux.
 
 ---
 
@@ -48,13 +50,17 @@ Além disso, fornece endpoints de autenticação (registro, login) com ASP.NET I
 - Entity Framework Core (SQL Server)
 - NSwag (Swagger) para documentação
 - Migrations EF Core para schema inicial
+- Integração com Ollama para geração de respostas baseadas em prompt
+- Rate limiting para proteção de endpoints críticos
 
 ---
 
 ## Estrutura do repositório (principais pastas)
 
 - DistroBackEnd/Distro.API — projeto da API (controllers, Program.cs, configuração)
+- DistroBackEnd/Distro.API/Controllers/GenerateController.cs — endpoint de IA para geração de respostas
 - DistroBackEnd/Distro.Application — DTOs e interfaces de aplicação (serviços)
+- DistroBackEnd/Distro.Application/Services/OllamaService.cs — serviço que consome a API do Ollama
 - DistroBackEnd/Distro.Domain — contratos e entidades de domínio
 - DistroBackEnd/Distro.Infra.Data — contexto EF Core, migrations, Identity
 - DistroBackEnd/Distro.Infra.IoC — injeção de dependenciancia, configurações (Swagger, JWT)
@@ -80,6 +86,7 @@ A API espera que algumas chaves estejam configuradas no `appsettings.json` (ou e
   - Jwt:Issuer
   - Jwt:Audience
   - Jwt:ExpiryMinutes (opcional)
+- Ollama — URL do serviço de geração de IA para o endpoint `/api/generate`.
 
 Exemplo mínimo (appsettings.json):
 
@@ -93,6 +100,9 @@ Exemplo mínimo (appsettings.json):
     "Issuer": "DistroApi",
     "Audience": "DistroApiUsers",
     "ExpiryMinutes": 60
+  },
+  "Ollama": {
+    "Url": "http://localhost:11434/api/generate"
   }
 }
 ```
@@ -177,6 +187,13 @@ Authorization: Bearer <token>
     - Request: LoginModels { Email, Password }
     - Retorna 200 OK => UserToken { Token, Expiration } ou 401 Unauthorized
 
+- GenerateController:
+  - POST /api/generate
+    - Requer JSON com `model` e `prompt`
+    - O prompt deve conter a palavra "linux" para ser válido
+    - Retorna 200 OK => GenerateResponseDTO { Answer }
+    - Rate limit: 3 requisições a cada 10 minutos
+
 - CategoryController:
   - GET /api/category
     - Retorna lista de categorias (paginada)
@@ -205,6 +222,14 @@ Authorization: Bearer <token>
     - Atualiza distro
   - DELETE /api/distro/{id}
     - Remove distro
+
+### Funcionalidade de IA / Ollama
+
+- Endpoint para geração de respostas com prompts sobre Linux
+- Validação do prompt exige a palavra "linux"
+- Serviço `OllamaService` consome a API do Ollama via `IAIService`
+- Regras de rate limiting:
+  - Política `generate` permite 3 requisições a cada 10 minutos
 
 ### DTOs principais
 
@@ -285,6 +310,17 @@ curl -X POST "https://localhost:5001/api/distro" \
   }'
 ```
 
+Exemplo de uso do endpoint de IA:
+
+```bash
+curl -X POST "https://localhost:5001/api/generate" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model":"llama2",
+    "prompt":"Escreva um breve resumo sobre Linux e suas vantagens para desenvolvedores."
+  }'
+```
+
 (Ajuste os campos conforme os DTOs presentes no projeto.)
 
 ---
@@ -319,7 +355,8 @@ O retorno é um objeto `PagedList<T>` com os seguintes campos:
 ## Regras adicionais
 
 - Rate limiting está ativado por controller com a política `fixedwindow`.
-- A política atual permite 100  requisição a cada 5 segundos
+- A política atual permite 100 requisições a cada 5 segundos
+- O endpoint `/api/generate` usa a política `generate` com 3 requisições a cada 10 minutos
 - Requisições acima do limite retornam `429 Too Many Requests`.
 - CORS está configurado com a política `AllowAll`.
 - Registro de usuário com e-mail duplicado retorna `400 BadRequest` e a mensagem `e-mail ja registrado`.
@@ -340,6 +377,8 @@ Lá é possível testar os endpoints e preencher o campo Authorization (Bearer t
 ## Observações técnicas e pontos importantes
 
 - A injeção de dependência e configurações estão centralizadas em `Distro.Infra.IoC` (métodos `AddInfrastructureIoC`, `AddInfrastructureSwagger`, `AddJwtConfiguration`).
+- O serviço de IA `OllamaService` implementa `IAIService` e consome o endpoint configurado em `Ollama:Url`.
+- O controller `GenerateController` valida prompts e retorna respostas geradas pela API do Ollama.
 - Autenticação usa `AuthenticateService` (implementa `IAuthenticate`) que utiliza `UserManager<ApplicationUser>` e `SignInManager<ApplicationUser>`.
 - Verifique os DTOs e validações (ModelState) nos Controllers para os requisitos dos objetos enviados.
 - A migration `Inicial` já cria as tabelas `Categories` e `Distros` e insere alguns dados seed (veja a migration em `Distro.Infra.Data/Migrations`).
