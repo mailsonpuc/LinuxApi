@@ -20,6 +20,11 @@ namespace Distro.API.Controllers
             _aiService = aiService;
         }
 
+
+        /// <summary>
+        /// Gerar resposta pelo modelo local qwen2.5:3b, sobre distro linux.
+        /// </summary>
+
         [HttpPost]
         public async Task<ActionResult<GenerateResponseDTO>> Generate([FromBody] GenerateRequestDTO request)
         {
