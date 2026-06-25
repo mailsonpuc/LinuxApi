@@ -1,0 +1,18 @@
+<MudPaper Elevation="0" Class="empty-state pa-8">
+    <MudIcon Icon="@Icon" Size="Size.Large" Color="Color.Secondary" />
+    <MudText Typo="Typo.h6" Class="mt-3">@Title</MudText>
+    <MudText Typo="Typo.body2" Class="mud-text-secondary mt-1">@Message</MudText>
+    @if (!string.IsNullOrWhiteSpace(ActionHref))
+    {
+        <MudButton Href="@ActionHref" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@ActionIcon" Class="mt-4">@ActionText</MudButton>
+    }
+</MudPaper>
+
+@code {
+    [Parameter] public string Icon { get; set; } = Icons.Material.Filled.Inbox;
+    [Parameter] public string Title { get; set; } = "Nenhum registro";
+    [Parameter] public string Message { get; set; } = "Nao ha dados para exibir.";
+    [Parameter] public string? ActionHref { get; set; }
+    [Parameter] public string ActionText { get; set; } = "Criar";
+    [Parameter] public string ActionIcon { get; set; } = Icons.Material.Filled.Add;
+}

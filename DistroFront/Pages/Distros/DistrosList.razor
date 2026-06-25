@@ -1,0 +1,118 @@
+@page "/distros"
+@inject IDistroService DistroService
+@inject ICategoryService CategoryService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Distros</PageTitle>
+
+<MudStack Spacing="4">
+    <div class="page-header">
+        <div>
+            <MudBreadcrumbs Items="_breadcrumbs" />
+            <MudText Typo="Typo.h4" Class="font-weight-bold">Distros</MudText>
+            <MudText Typo="Typo.body1" Class="mud-text-secondary">Catalogo operacional de distribuicoes Linux.</MudText>
+        </div>
+        <MudButton Href="distros/new" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add">Nova distro</MudButton>
+    </div>
+
+    <MudCard Elevation="0" Class="data-card">
+        <MudCardContent>
+            <MudTextField @bind-Value="_search" Placeholder="Buscar por nome" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Class="mb-4" />
+            <MudTable Items="@FilteredDistros" Hover="true" Dense="true" Loading="@_loading" RowsPerPage="10">
+                <HeaderContent>
+                    <MudTh>Nome</MudTh>
+                    <MudTh>Categoria</MudTh>
+                    <MudTh>ISO</MudTh>
+                    <MudTh Style="width:180px">Acoes</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Nome">
+                        <div class="d-flex align-center gap-3">
+                            <MudAvatar Size="Size.Small" Color="Color.Primary">@Initials(context.Nome)</MudAvatar>
+                            <MudText>@context.Nome</MudText>
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="Categoria">@GetCategoryName(context.CategoryId)</MudTd>
+                    <MudTd DataLabel="ISO"><MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined">@context.Iso</MudChip></MudTd>
+                    <MudTd DataLabel="Acoes">
+                        <MudIconButton Href="@($"distros/{context.DistroId}")" Icon="@Icons.Material.Filled.Visibility" Color="Color.Primary" Size="Size.Small" />
+                        <MudIconButton Href="@($"distros/{context.DistroId}/edit")" Icon="@Icons.Material.Filled.Edit" Color="Color.Secondary" Size="Size.Small" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteAsync(context))" />
+                    </MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <EmptyState Title="Nenhuma distro" Message="Nao ha distribuicoes para os filtros atuais." ActionHref="distros/new" ActionText="Nova distro" />
+                </NoRecordsContent>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        </MudCardContent>
+    </MudCard>
+</MudStack>
+
+@code {
+    private readonly List<BreadcrumbItem> _breadcrumbs = [new("Dashboard", "/"), new("Distros", href: null, disabled: true)];
+    private IReadOnlyList<DistroDto> _distros = [];
+    private IReadOnlyList<CategoryDto> _categories = [];
+    private bool _loading = true;
+    private string? _search;
+
+    private IEnumerable<DistroDto> FilteredDistros => string.IsNullOrWhiteSpace(_search)
+        ? _distros
+        : _distros.Where(d => d.Nome?.Contains(_search, StringComparison.OrdinalIgnoreCase) == true);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            _categories = await CategoryService.GetAllAsync(cts.Token);
+            _distros = await DistroService.GetAllAsync(cts.Token);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao carregar distros: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task DeleteAsync(DistroDto distro)
+    {
+        var parameters = new DialogParameters
+        {
+            ["Title"] = "Excluir distro",
+            ["Message"] = $"Deseja excluir {distro.Nome}?"
+        };
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>("Confirmar", parameters);
+        var result = await dialog.Result;
+        if (result is null || result.Canceled)
+        {
+            return;
+        }
+
+        try
+        {
+            await DistroService.DeleteAsync(distro.DistroId);
+            Snackbar.Add("Distro excluida.", Severity.Success);
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao excluir distro: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private string GetCategoryName(Guid categoryId) => _categories.FirstOrDefault(c => c.CategoryId == categoryId)?.Name ?? "Sem categoria";
+    private static string Initials(string? value) => string.IsNullOrWhiteSpace(value) ? "D" : value.Trim()[0].ToString().ToUpperInvariant();
+}

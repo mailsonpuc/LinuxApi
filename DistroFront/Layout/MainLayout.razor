@@ -1,0 +1,139 @@
+@inherits LayoutComponentBase
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+
+<MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout Class="app-shell">
+    <MudAppBar Elevation="0" Dense="true" Class="app-bar">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@DrawerToggle" />
+        <MudText Typo="Typo.h6" Class="ml-2 font-weight-bold">Distro Admin</MudText>
+        <MudSpacer />
+        <MudChip T="string" Size="Size.Small" Color="@(_apiOnline ? Color.Success : Color.Warning)" Variant="Variant.Outlined" Class="mr-2">
+            API @(_apiOnline ? "configurada" : "indisponivel")
+        </MudChip>
+        <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
+        <AuthorizeView>
+            <Authorized>
+                <MudButton Variant="Variant.Text" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.Logout" OnClick="LogoutAsync">Sair</MudButton>
+            </Authorized>
+            <NotAuthorized>
+                <MudButton Href="login" Variant="Variant.Text" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.Login">Entrar</MudButton>
+            </NotAuthorized>
+        </AuthorizeView>
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="0" Class="app-drawer">
+        <NavMenu />
+    </MudDrawer>
+
+    <MudMainContent Class="main-content">
+        <MudContainer MaxWidth="MaxWidth.False" Class="pa-4 pa-md-6">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private bool _drawerOpen = true;
+    private bool _isDarkMode;
+    private bool _apiOnline = true;
+    private MudTheme? _theme;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        _theme = new()
+        {
+            PaletteLight = _lightPalette,
+            PaletteDark = _darkPalette,
+            LayoutProperties = new LayoutProperties
+            {
+                DrawerWidthLeft = "260px"
+            },
+            Typography = new Typography
+            {
+                Default = new DefaultTypography
+                {
+                    FontFamily = ["Inter", "Roboto", "Helvetica", "Arial", "sans-serif"]
+                }
+            }
+        };
+    }
+
+    private void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    private void DarkModeToggle()
+    {
+        _isDarkMode = !_isDarkMode;
+    }
+
+    private async Task LogoutAsync()
+    {
+        await AuthService.LogoutAsync();
+        NavigationManager.NavigateTo("login");
+    }
+
+    private readonly PaletteLight _lightPalette = new()
+    {
+        Primary = "#2563EB",
+        Secondary = "#0F766E",
+        Tertiary = "#D97706",
+        Black = "#111827",
+        Background = "#F5F7FB",
+        Surface = "#FFFFFF",
+        AppbarText = "#111827",
+        AppbarBackground = "rgba(255,255,255,0.92)",
+        DrawerBackground = "#ffffff",
+        DrawerText = "#374151",
+        DrawerIcon = "#4B5563",
+        GrayLight = "#E5E7EB",
+        GrayLighter = "#F3F4F6",
+        LinesDefault = "#E5E7EB",
+        TableLines = "#E5E7EB"
+    };
+
+    private readonly PaletteDark _darkPalette = new()
+    {
+        Primary = "#60A5FA",
+        Secondary = "#2DD4BF",
+        Tertiary = "#F59E0B",
+        Surface = "#151A23",
+        Background = "#0F141B",
+        BackgroundGray = "#111827",
+        AppbarText = "#E5E7EB",
+        AppbarBackground = "rgba(15,20,27,0.94)",
+        DrawerBackground = "#111827",
+        ActionDefault = "#CBD5E1",
+        ActionDisabled = "#9999994d",
+        ActionDisabledBackground = "#605f6d4d",
+        TextPrimary = "#F3F4F6",
+        TextSecondary = "#CBD5E1",
+        TextDisabled = "#ffffff33",
+        DrawerIcon = "#CBD5E1",
+        DrawerText = "#E5E7EB",
+        GrayLight = "#263244",
+        GrayLighter = "#1F2937",
+        Info = "#38BDF8",
+        Success = "#22C55E",
+        Warning = "#F59E0B",
+        Error = "#EF4444",
+        LinesDefault = "#263244",
+        TableLines = "#263244",
+        Divider = "#263244",
+        OverlayLight = "#0F141B80",
+    };
+
+    public string DarkLightModeButtonIcon => _isDarkMode switch
+    {
+        true => Icons.Material.Outlined.LightMode,
+        false => Icons.Material.Outlined.DarkMode,
+    };
+}

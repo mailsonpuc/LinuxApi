@@ -1,0 +1,60 @@
+@page "/register"
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>Registro</PageTitle>
+
+<MudGrid Justify="Justify.Center" Class="auth-page">
+    <MudItem xs="12" sm="8" md="5" lg="4">
+        <MudCard Elevation="0" Class="auth-card">
+            <MudCardContent>
+                <MudText Typo="Typo.h4" Class="font-weight-bold">Criar conta</MudText>
+                <MudText Typo="Typo.body2" Class="mud-text-secondary mb-6">Registre um usuario para usar rotas protegidas.</MudText>
+                <MudForm @ref="_form" Model="_model">
+                    <MudTextField @bind-Value="_model.Email" Label="E-mail" Required="true" InputType="InputType.Email" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" Class="mb-3" />
+                    <MudTextField @bind-Value="_model.Password" Label="Senha" Required="true" InputType="InputType.Password" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Lock" Class="mb-3" />
+                    <MudTextField @bind-Value="_model.ConfirmPassword" Label="Confirmar senha" Required="true" InputType="InputType.Password" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.LockReset" Class="mb-4" />
+                    <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PersonAdd" Disabled="@_loading" OnClick="RegisterAsync">Registrar</MudButton>
+                    <MudButton FullWidth="true" Href="login" Variant="Variant.Text" Class="mt-2">Ja tenho conta</MudButton>
+                </MudForm>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private MudForm? _form;
+    private readonly RegisterRequestDto _model = new();
+    private bool _loading;
+
+    private async Task RegisterAsync()
+    {
+        if (_form is null)
+        {
+            return;
+        }
+
+        await _form.ValidateAsync();
+        if (!_form.IsValid)
+        {
+            return;
+        }
+
+        _loading = true;
+        try
+        {
+            await AuthService.RegisterAsync(_model);
+            Snackbar.Add("Usuario registrado.", Severity.Success);
+            NavigationManager.NavigateTo("login");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Falha no registro: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

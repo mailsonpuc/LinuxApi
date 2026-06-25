@@ -1,0 +1,102 @@
+@page "/categories"
+@inject ICategoryService CategoryService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Categorias</PageTitle>
+
+<MudStack Spacing="4">
+    <div class="page-header">
+        <div>
+            <MudBreadcrumbs Items="_breadcrumbs" />
+            <MudText Typo="Typo.h4" Class="font-weight-bold">Categorias</MudText>
+            <MudText Typo="Typo.body1" Class="mud-text-secondary">Organize as distribuicoes por perfil de uso.</MudText>
+        </div>
+        <MudButton Href="categories/new" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add">Nova categoria</MudButton>
+    </div>
+
+    <MudCard Elevation="0" Class="data-card">
+        <MudCardContent>
+            <MudTextField @bind-Value="_search" Placeholder="Buscar categoria" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Class="mb-4" />
+            <MudTable Items="@FilteredCategories" Hover="true" Dense="true" Loading="@_loading" RowsPerPage="10">
+                <HeaderContent>
+                    <MudTh>Nome</MudTh>
+                    <MudTh Style="width:180px">Acoes</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Nome">@context.Name</MudTd>
+                    <MudTd DataLabel="Acoes">
+                        <MudIconButton Href="@($"categories/{context.CategoryId}")" Icon="@Icons.Material.Filled.Visibility" Color="Color.Primary" Size="Size.Small" />
+                        <MudIconButton Href="@($"categories/{context.CategoryId}/edit")" Icon="@Icons.Material.Filled.Edit" Color="Color.Secondary" Size="Size.Small" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteAsync(context))" />
+                    </MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <EmptyState Title="Nenhuma categoria" Message="Nao ha categorias para os filtros atuais." ActionHref="categories/new" ActionText="Nova categoria" />
+                </NoRecordsContent>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        </MudCardContent>
+    </MudCard>
+</MudStack>
+
+@code {
+    private readonly List<BreadcrumbItem> _breadcrumbs = [new("Dashboard", "/"), new("Categorias", href: null, disabled: true)];
+    private IReadOnlyList<CategoryDto> _categories = [];
+    private bool _loading = true;
+    private string? _search;
+
+    private IEnumerable<CategoryDto> FilteredCategories => string.IsNullOrWhiteSpace(_search)
+        ? _categories
+        : _categories.Where(c => c.Name?.Contains(_search, StringComparison.OrdinalIgnoreCase) == true);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            _categories = await CategoryService.GetAllAsync(cts.Token);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao carregar categorias: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task DeleteAsync(CategoryDto category)
+    {
+        var parameters = new DialogParameters
+        {
+            ["Title"] = "Excluir categoria",
+            ["Message"] = $"Deseja excluir {category.Name}?"
+        };
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>("Confirmar", parameters);
+        var result = await dialog.Result;
+        if (result is null || result.Canceled)
+        {
+            return;
+        }
+
+        try
+        {
+            await CategoryService.DeleteAsync(category.CategoryId);
+            Snackbar.Add("Categoria excluida.", Severity.Success);
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao excluir categoria: {ex.Message}", Severity.Error);
+        }
+    }
+}

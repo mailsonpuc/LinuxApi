@@ -1,0 +1,22 @@
+<MudCard Elevation="0" Class="stat-card">
+    <MudCardContent>
+        <div class="d-flex align-center justify-space-between">
+            <div>
+                <MudText Typo="Typo.overline" Color="Color.Secondary">@Label</MudText>
+                <MudText Typo="Typo.h4" Class="font-weight-bold">@Value</MudText>
+                <MudText Typo="Typo.body2" Class="mud-text-secondary">@Caption</MudText>
+            </div>
+            <MudAvatar Color="@Color" Variant="Variant.Filled" Size="Size.Large">
+                <MudIcon Icon="@Icon" />
+            </MudAvatar>
+        </div>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Parameter] public string Label { get; set; } = string.Empty;
+    [Parameter] public string Value { get; set; } = "0";
+    [Parameter] public string Caption { get; set; } = string.Empty;
+    [Parameter] public string Icon { get; set; } = Icons.Material.Filled.Analytics;
+    [Parameter] public Color Color { get; set; } = Color.Primary;
+}

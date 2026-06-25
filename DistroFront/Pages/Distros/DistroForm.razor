@@ -1,0 +1,161 @@
+@page "/distros/new"
+@page "/distros/{Id:guid}/edit"
+@attribute [Authorize]
+@inject IDistroService DistroService
+@inject ICategoryService CategoryService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>@Title</PageTitle>
+
+<MudStack Spacing="4">
+    <div class="page-header">
+        <div>
+            <MudBreadcrumbs Items="_breadcrumbs" />
+            <MudText Typo="Typo.h4" Class="font-weight-bold">@Title</MudText>
+            <MudText Typo="Typo.body1" Class="mud-text-secondary">Cadastre nome, descricao, ISO, categoria e imagem.</MudText>
+        </div>
+    </div>
+
+    <MudCard Elevation="0" Class="form-card">
+        <MudCardContent>
+            @if (_loading)
+            {
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            }
+            else
+            {
+                <MudForm @ref="_form">
+                    <MudGrid>
+                        <MudItem xs="12" md="6">
+                            <MudTextField @bind-Value="_editModel.Nome" Label="Nome" Required="true" />
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudTextField @bind-Value="_editModel.Iso" Label="ISO" Required="true" />
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudSelect T="Guid" @bind-Value="_editModel.CategoryId" Label="Categoria" Required="true">
+                                @foreach (var category in _categories)
+                                {
+                                    <MudSelectItem Value="@category.CategoryId">@category.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        @if (IsEdit)
+                        {
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="_editModel.ImageUrl" Label="URL da imagem" Required="true" />
+                            </MudItem>
+                        }
+                        else
+                        {
+                            <MudItem xs="12" md="6">
+                                <MudPaper Elevation="0" Class="upload-box pa-4">
+                                    <MudText Typo="Typo.subtitle2">Imagem</MudText>
+                                    <InputFile OnChange="OnFileChanged" accept=".jpg,.jpeg,.png,.webp" />
+                                    <MudText Typo="Typo.caption" Class="mud-text-secondary">@(_createModel.ImageFile?.Name ?? "JPG, PNG ou WebP ate 1 MB")</MudText>
+                                </MudPaper>
+                            </MudItem>
+                        }
+                        <MudItem xs="12">
+                            <MudTextField @bind-Value="_editModel.Descricao" Label="Descricao" Required="true" Lines="5" />
+                        </MudItem>
+                    </MudGrid>
+                    <MudStack Row="true" Spacing="2" Class="mt-6">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Save" Disabled="@_saving" OnClick="SaveAsync">Salvar</MudButton>
+                        <MudButton Href="distros" Variant="Variant.Text">Cancelar</MudButton>
+                    </MudStack>
+                </MudForm>
+            }
+        </MudCardContent>
+    </MudCard>
+</MudStack>
+
+@code {
+    [Parameter] public Guid? Id { get; set; }
+
+    private MudForm? _form;
+    private DistroDto _editModel = new();
+    private DistroCreateDto _createModel = new();
+    private IReadOnlyList<CategoryDto> _categories = [];
+    private bool _loading = true;
+    private bool _saving;
+    private bool IsEdit => Id.HasValue;
+    private string Title => IsEdit ? "Editar distro" : "Nova distro";
+    private List<BreadcrumbItem> _breadcrumbs = [];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _breadcrumbs = [new("Dashboard", "/"), new("Distros", "distros"), new(Title, href: null, disabled: true)];
+        _loading = true;
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            _categories = await CategoryService.GetAllAsync(cts.Token);
+            if (IsEdit)
+            {
+                _editModel = await DistroService.GetByIdAsync(Id!.Value, cts.Token) ?? new DistroDto();
+            }
+            else if (_categories.Count > 0)
+            {
+                _editModel.CategoryId = _categories[0].CategoryId;
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao carregar formulario: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void OnFileChanged(InputFileChangeEventArgs args)
+    {
+        _createModel.ImageFile = args.File;
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_form is null)
+        {
+            return;
+        }
+
+        await _form.ValidateAsync();
+        if (!_form.IsValid)
+        {
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            if (IsEdit)
+            {
+                await DistroService.UpdateAsync(_editModel);
+                Snackbar.Add("Distro atualizada.", Severity.Success);
+            }
+            else
+            {
+                _createModel.Nome = _editModel.Nome;
+                _createModel.Descricao = _editModel.Descricao;
+                _createModel.Iso = _editModel.Iso;
+                _createModel.CategoryId = _editModel.CategoryId;
+                await DistroService.CreateAsync(_createModel);
+                Snackbar.Add("Distro criada.", Severity.Success);
+            }
+
+            NavigationManager.NavigateTo("distros");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao salvar distro: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

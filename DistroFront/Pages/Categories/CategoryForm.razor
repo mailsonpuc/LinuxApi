@@ -1,0 +1,116 @@
+@page "/categories/new"
+@page "/categories/{Id:guid}/edit"
+@attribute [Authorize]
+@inject ICategoryService CategoryService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>@Title</PageTitle>
+
+<MudStack Spacing="4">
+    <div class="page-header">
+        <div>
+            <MudBreadcrumbs Items="_breadcrumbs" />
+            <MudText Typo="Typo.h4" Class="font-weight-bold">@Title</MudText>
+            <MudText Typo="Typo.body1" Class="mud-text-secondary">Mantenha a taxonomia do catalogo consistente.</MudText>
+        </div>
+    </div>
+
+    <MudCard Elevation="0" Class="form-card">
+        <MudCardContent>
+            @if (_loading)
+            {
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            }
+            else
+            {
+                <MudForm @ref="_form" Model="_category">
+                    <MudGrid>
+                        <MudItem xs="12" md="8">
+                            <MudTextField @bind-Value="_category.Name" Label="Nome" Required="true" Counter="50" MaxLength="50" />
+                        </MudItem>
+                    </MudGrid>
+                    <MudStack Row="true" Spacing="2" Class="mt-6">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Save" Disabled="@_saving" OnClick="SaveAsync">Salvar</MudButton>
+                        <MudButton Href="categories" Variant="Variant.Text">Cancelar</MudButton>
+                    </MudStack>
+                </MudForm>
+            }
+        </MudCardContent>
+    </MudCard>
+</MudStack>
+
+@code {
+    [Parameter] public Guid? Id { get; set; }
+
+    private MudForm? _form;
+    private CategoryDto _category = new();
+    private bool _loading;
+    private bool _saving;
+    private bool IsEdit => Id.HasValue;
+    private string Title => IsEdit ? "Editar categoria" : "Nova categoria";
+    private List<BreadcrumbItem> _breadcrumbs = [];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _breadcrumbs = [new("Dashboard", "/"), new("Categorias", "categories"), new(Title, href: null, disabled: true)];
+
+        if (!IsEdit)
+        {
+            return;
+        }
+
+        _loading = true;
+        try
+        {
+            _category = await CategoryService.GetByIdAsync(Id!.Value) ?? new CategoryDto();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao carregar categoria: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_form is null)
+        {
+            return;
+        }
+
+        await _form.ValidateAsync();
+        if (!_form.IsValid)
+        {
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            if (IsEdit)
+            {
+                await CategoryService.UpdateAsync(_category);
+                Snackbar.Add("Categoria atualizada.", Severity.Success);
+            }
+            else
+            {
+                await CategoryService.CreateAsync(_category);
+                Snackbar.Add("Categoria criada.", Severity.Success);
+            }
+
+            NavigationManager.NavigateTo("categories");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao salvar categoria: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

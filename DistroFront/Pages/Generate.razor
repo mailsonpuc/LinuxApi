@@ -1,0 +1,86 @@
+@page "/generate"
+@inject IGenerateService GenerateService
+@inject ISnackbar Snackbar
+
+<PageTitle>Gerador IA</PageTitle>
+
+<MudStack Spacing="4">
+    <div class="page-header">
+        <div>
+            <MudBreadcrumbs Items="_breadcrumbs" />
+            <MudText Typo="Typo.h4" Class="font-weight-bold">Gerador IA</MudText>
+            <MudText Typo="Typo.body1" Class="mud-text-secondary">Endpoint local para perguntas sobre Linux.</MudText>
+        </div>
+    </div>
+
+    <MudGrid>
+        <MudItem xs="12" md="5">
+            <MudCard Elevation="0" Class="form-card">
+                <MudCardContent>
+                    <MudForm @ref="_form" Model="_request">
+                        <MudTextField @bind-Value="_request.Model" Label="Modelo" Required="true" Class="mb-3" />
+                        <MudTextField @bind-Value="_request.Prompt" Label="Pergunta" Required="true" Lines="7" Class="mb-4" />
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.AutoAwesome" Disabled="@_loading" OnClick="GenerateAsync">Gerar</MudButton>
+                    </MudForm>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" md="7">
+            <MudCard Elevation="0" Class="form-card ai-answer">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6">Resposta</MudText>
+                    @if (_loading)
+                    {
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="mt-4" />
+                    }
+                    else if (string.IsNullOrWhiteSpace(_answer))
+                    {
+                        <EmptyState Icon="@Icons.Material.Filled.AutoAwesome" Title="Aguardando pergunta" Message="A resposta gerada pela API aparecera aqui." />
+                    }
+                    else
+                    {
+                        <MudText Class="mt-4 answer-text">@_answer</MudText>
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</MudStack>
+
+@code {
+    private readonly List<BreadcrumbItem> _breadcrumbs = [new("Dashboard", "/"), new("Gerador IA", href: null, disabled: true)];
+    private MudForm? _form;
+    private GenerateRequestDto _request = new();
+    private string? _answer;
+    private bool _loading;
+
+    private async Task GenerateAsync()
+    {
+        if (_form is null)
+        {
+            return;
+        }
+
+        await _form.ValidateAsync();
+        if (!_form.IsValid)
+        {
+            return;
+        }
+
+        _loading = true;
+        try
+        {
+            var response = await GenerateService.GenerateAsync(_request);
+            _answer = response.Answer;
+            Snackbar.Add("Resposta gerada.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao gerar resposta: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}
