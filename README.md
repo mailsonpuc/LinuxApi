@@ -3,12 +3,15 @@
 API para gerenciamento de distribuições Linux (Distro). Projeto FullStack — neste repositório está a API em .NET (C#) responsável por categorias e distros, autenticação via JWT, persistência com Entity Framework Core e Identity, e documentação automática via NSwag/Swagger.
 
 
-## Diagrama
-<img src="DistroBackEnd/Distro.API/wwwroot/doc/diagrama1.png">
 
 
 ---
 
+
+<video width="600" controls>
+  <source src="video_2026-08-27_18-27-56.mp4" type="video/mp4">
+  Seu navegador não suporta vídeos.
+</video>
 
 
 ## Sumário
