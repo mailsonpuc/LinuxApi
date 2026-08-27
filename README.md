@@ -8,10 +8,7 @@ API para gerenciamento de distribuições Linux (Distro). Projeto FullStack — 
 ---
 
 
-<video width="600" controls>
-  <source src="video_2026-08-27_18-27-56.mp4" type="video/mp4">
-  Seu navegador não suporta vídeos.
-</video>
+![Demonstração do App](video_2026-08-27_18-27-56-ezgif.com-video-to-gif-converter.gif)
 
 
 ## Sumário
